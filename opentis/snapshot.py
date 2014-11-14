@@ -13,7 +13,7 @@ import mdtraj as md
 #=============================================================================
 # SIMULATION CONFIGURATION
 #=============================================================================
-from wrapper import storable
+from opentis.wrapper import storable
 
 
 @storable

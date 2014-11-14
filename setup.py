@@ -11,6 +11,7 @@ import numpy
 import glob
 import os
 import subprocess
+import six
 
 ##########################
 VERSION = "0.0.1"
@@ -117,9 +118,9 @@ def buildKeywordDictionary():
     outputString=""
     firstTab     = 40
     secondTab    = 60
-    for key in sorted( setupKeywords.iterkeys() ):
-         value         = setupKeywords[key]
-         outputString += key.rjust(firstTab) + str( value ).rjust(secondTab) + "\n"
+#    for key in sorted( setupKeywords.iterkeys() ):
+#         value         = setupKeywords[key]
+#         outputString += key.rjust(firstTab) + str( value ).rjust(secondTab) + "\n"
     
     print("%s" % outputString)
 

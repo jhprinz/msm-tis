@@ -15,7 +15,7 @@ from snapshot import Snapshot, Configuration, Momentum
 #=============================================================================================
 # SIMULATION TRAJECTORY
 #=============================================================================================
-from wrapper import storable
+from opentis.wrapper import storable
 
 
 @storable

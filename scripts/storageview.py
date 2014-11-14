@@ -2,9 +2,11 @@ import sys
 import argparse
 import os
 
-from storage import Storage
-from orderparameter import StorableObjectDict
-from snapshot import Configuration
+from __future__ import print_function
+
+from opentis.storage import Storage
+from opentis.orderparameter import StorableObjectDict
+from opentis.snapshot import Configuration
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Analyze a file.')
@@ -14,7 +16,7 @@ if __name__ == '__main__':
     file = args.file
 
     if not os.path.isfile(file):
-        print file, 'does not exist ! ENDING!'
+        print(file, 'does not exist ! ENDING!')
         exit()
 
     storage = Storage(

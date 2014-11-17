@@ -3,7 +3,8 @@ Created on 03.09.2014
 
 @author: jan-hendrikprinz, David W.H. Swenson
 '''
-import range_logic
+from __future__ import absolute_import
+from . import range_logic
 
 class Volume(object):
     def __init__(self):

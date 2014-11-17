@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 
 from simtk.openmm.app import Simulation
-from snapshot import Snapshot
+from .snapshot import Snapshot
 
 class OpenMMSimulation(Simulation):
     """We only need a few things from the simulation. This object duck-types

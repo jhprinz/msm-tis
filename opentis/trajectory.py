@@ -2,6 +2,7 @@
 @author: JD Chodera
 @author: JH Prinz
 '''
+from __future__ import absolute_import
 
 import copy
 
@@ -9,7 +10,7 @@ import numpy as np
 import mdtraj as md
 from simtk.unit import nanometers, Quantity
 
-from snapshot import Snapshot, Configuration, Momentum
+from .snapshot import Snapshot, Configuration, Momentum
 
 
 #=============================================================================================

@@ -1,6 +1,7 @@
-from object_storage import ObjectStorage
+from __future__ import absolute_import
+from .object_storage import ObjectStorage
 from opentis.ensemble import Ensemble, LoadedEnsemble
-from wrapper import loadcache
+from .wrapper import loadcache
 
 class EnsembleStorage(ObjectStorage):
 

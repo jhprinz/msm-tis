@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 import numpy as np
 import mdtraj as md
 
-from object_storage import ObjectStorage
-from wrapper import savecache, loadcache
+from .object_storage import ObjectStorage
+from .wrapper import savecache, loadcache
 from opentis.trajectory import Trajectory, Sample
 from opentis.snapshot import Configuration, Momentum, Snapshot
 

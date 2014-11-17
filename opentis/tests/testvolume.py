@@ -1,10 +1,11 @@
 """
 @author David W.H. Swenson
 """
+from __future__ import absolute_import
 
 from nose.tools import assert_equal, assert_not_equal, assert_is, raises
 from nose.plugins.skip import Skip, SkipTest
-from test_helpers import CallIdentity
+from .test_helpers import CallIdentity
 
 import opentis.volume as volume
 

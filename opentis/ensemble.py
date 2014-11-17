@@ -3,8 +3,9 @@ Created on 03.09.2014
 
 @author: jan-hendrikprinz, David W.H. Swenson
 '''
-from trajectory import Trajectory
-from wrapper import storable
+from __future__ import absolute_import
+from .trajectory import Trajectory
+from .wrapper import storable
 
 @storable
 class Ensemble(object):

@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 import copy
 import json
 
 import yaml
 import numpy as np
 
-from wrapper import savecache, saveidentifiable, loadcache
+from .wrapper import savecache, saveidentifiable, loadcache
 
 def add_storage_name(func):
     def inner(self, name, *args, **kwargs):

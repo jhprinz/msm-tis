@@ -4,6 +4,7 @@ Created on 01.07.2014
 @author JDC Chodera
 @author: JH Prinz
 '''
+from __future__ import print_function
 
 import time
 
@@ -135,12 +136,12 @@ class Simulator(object):
                 stop = stop or not self.max_length_stopper(trajectory)
                 
                 if self.op:
-                    print self.max_length_stopper, self.max_length_stopper(trajectory)
-                    print frame
-                    print len(trajectory)
-                    print [ s.begin for s in trajectory]
+                    print(self.max_length_stopper, self.max_length_stopper(trajectory))
+                    print(frame)
+                    print(len(trajectory))
+                    print([ s.begin for s in trajectory])
                     
-                    print 'OP :', self.op(snapshot)
+                    print('OP :', self.op(snapshot))
 
             self.simulation.stop(trajectory)
             return trajectory

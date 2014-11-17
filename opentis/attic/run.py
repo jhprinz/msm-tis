@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from __future__ import print_function
 
 #=============================================================================================
 # GLOBAL IMPORTS
@@ -159,7 +160,7 @@ def AlanineSetup(N=150, NA=None, A_fraction=0.8, principal_component_density=0.9
     a = Quantity(numpy.array([1.0, 0.0, 0.0], numpy.float32), nanometer) * length/nanometer
     b = Quantity(numpy.array([0.0, 1.0, 0.0], numpy.float32), nanometer) * length/nanometer
     c = Quantity(numpy.array([0.0, 0.0, 1.0], numpy.float32), nanometer) * length/nanometer
-    print "box edge length = %s" % str(length)
+    print("box edge length = %s" % str(length))
     system.setDefaultPeriodicBoxVectors(a, b, c)
     
     coordinates = []
@@ -269,25 +270,25 @@ def driver():
     else:
         raise Exception("Unknown mode: %s" % mode)
 
-    print "UNCORRECTED TIMES"
-    print "timestep = %s" % str(timestep.in_units_of(femtosecond))
-    print "delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep)
-    print "tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep)
-    print "t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep)
+    print("UNCORRECTED TIMES")
+    print("timestep = %s" % str(timestep.in_units_of(femtosecond)))
+    print("delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep))
+    print("tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep))
+    print("t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep))
 
     # Determine integral number of steps per velocity randomization and number of trajectories
     nsteps_per_frame = int(round(delta_t / timestep)) # number of steps per trajectory frame and velocity randomization
     nframes = int(round(t_obs / delta_t)) # number of frames per trajectory
-    print "number of steps per trajectory frame and velocity randomization = %d" % nsteps_per_frame
-    print "number of frames per trajectory = %d" % nframes
+    print("number of steps per trajectory frame and velocity randomization = %d" % nsteps_per_frame)
+    print("number of frames per trajectory = %d" % nframes)
     # Correct delta_t and t_obs to be integral
     delta_t = nsteps_per_frame * timestep 
     t_obs = nframes * delta_t
-    print "CORRECTED TIMES (after rounding number of steps to integers)"
-    print "timestep = %s" % str(timestep.in_units_of(femtosecond))
-    print "delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep)
-    print "tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep)
-    print "t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep)
+    print("CORRECTED TIMES (after rounding number of steps to integers)")
+    print("timestep = %s" % str(timestep.in_units_of(femtosecond)))
+    print("delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep))
+    print("tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep))
+    print("t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep))
 
     # Replica-exchange filename
     ncfilename = 'repex.nc'
@@ -308,7 +309,7 @@ def driver():
                 
     if minimize:
         # Minimize the system prior to dynamics.
-        print "Minimizing with L-BFGS..."
+        print("Minimizing with L-BFGS...")
         # Initialize a minimizer with default options.
         minimizer = LocalEnergyMinimizer(system, verbose=True, platform=platform)
         # Minimize the initial coordinates.
@@ -325,7 +326,7 @@ def driver():
         # Equilibrate at high temperature.
         collision_rate = 1.0 / delta_t
         nsteps = int(math.floor(t_obs / timestep))
-        print "Equilibrating at %s for %d steps..." % (str(elevated_temperature), nsteps)
+        print("Equilibrating at %s for %d steps..." % (str(elevated_temperature), nsteps))
         integrator = LangevinIntegrator(elevated_temperature, collision_rate, timestep)
         context = Context(system, integrator, platform)
         context.setPositions(coordinates)
@@ -338,7 +339,7 @@ def driver():
         # Quench to final temperature
         collision_rate = 1.0 / delta_t
         nsteps = int(math.floor(t_obs / timestep))
-        print "Quenching to %s for %d steps..." % (str(quenched_temperature), nsteps)
+        print("Quenching to %s for %d steps..." % (str(quenched_temperature), nsteps))
         integrator = LangevinIntegrator(quenched_temperature, collision_rate, timestep)
         context = Context(system, integrator, platform)
         context.setPositions(coordinates)
@@ -351,27 +352,27 @@ def driver():
     s_reduced_unit = 1.0 / (sigma**2 * delta_t)
     #svalues = [0.00, 0.01, 0.02, 0.03, 0.04, 0.06] # minimal set of s values
     svalues = [0.00, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, -0.005]
-    print "Initializing transition path sampling ensembles..."
+    print("Initializing transition path sampling ensembles...")
     ensembles = [ TransitionPathSampling(system, N, NA, mass, epsilon, sigma, timestep, nsteps_per_frame, nframes, quenched_temperature, s * s_reduced_unit, platform=platform) for s in svalues ]
 
     trajectory = None
     if seed:
         # Generate an initial trajectory at zero field
-        print "Generating seed trajectory for TPS..."
+        print("Generating seed trajectory for TPS...")
         trajectory = ensembles[0].generateTrajectory(coordinates, nframes)
 
     # Initialize replica-exchange TPS simulation.
-    print "Initializing replica-exchange TPS..."
+    print("Initializing replica-exchange TPS...")
     simulation = ReplicaExchangeTPS(system, ensembles, trajectory, ncfilename)
 
     # Set simulation parameters.
     simulation.number_of_iterations = 10000
 
     # Run simulation
-    print "Running replica-exchange TPS..."
+    print("Running replica-exchange TPS...")
     simulation.run()
         
-    print "Work Done :) Go home and have a beer."
+    print("Work Done :) Go home and have a beer.")
 
 #=============================================================================================
 # This driver sets up a simulation for multiple temperatures and s-values.
@@ -415,25 +416,25 @@ def multitemp_driver():
     else:
         raise Exception("Unknown mode: %s" % mode)
 
-    print "UNCORRECTED TIMES"
-    print "timestep = %s" % str(timestep.in_units_of(femtosecond))
-    print "delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep)
-    print "tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep)
-    print "t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep)
+    print("UNCORRECTED TIMES")
+    print("timestep = %s" % str(timestep.in_units_of(femtosecond)))
+    print("delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep))
+    print("tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep))
+    print("t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep))
 
     # Determine integral number of steps per velocity randomization and number of trajectories
     nsteps_per_frame = int(round(delta_t / timestep)) # number of steps per trajectory frame and velocity randomization
     nframes = int(round(t_obs / delta_t)) # number of frames per trajectory
-    print "number of steps per trajectory frame and velocity randomization = %d" % nsteps_per_frame
-    print "number of frames per trajectory = %d" % nframes
+    print("number of steps per trajectory frame and velocity randomization = %d" % nsteps_per_frame)
+    print("number of frames per trajectory = %d" % nframes)
     # Correct delta_t and t_obs to be integral
     delta_t = nsteps_per_frame * timestep 
     t_obs = nframes * delta_t
-    print "CORRECTED TIMES (after rounding number of steps to integers)"
-    print "timestep = %s" % str(timestep.in_units_of(femtosecond))
-    print "delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep)
-    print "tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep)
-    print "t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep)
+    print("CORRECTED TIMES (after rounding number of steps to integers)")
+    print("timestep = %s" % str(timestep.in_units_of(femtosecond)))
+    print("delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep))
+    print("tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep))
+    print("t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep))
 
     # Replica-exchange filename
     ncfilename = 'repex-Ts.nc' # DEBUG
@@ -454,7 +455,7 @@ def multitemp_driver():
                 
     if minimize:
         # Minimize the system prior to dynamics.
-        print "Minimizing with L-BFGS..."
+        print("Minimizing with L-BFGS...")
         # Initialize a minimizer with default options.
         minimizer = optimize.LBFGSMinimizer(system, verbose=True, platform=platform)
         # Minimize the initial coordinates.
@@ -469,7 +470,7 @@ def multitemp_driver():
         # Equilibrate at high temperature.
         collision_rate = 1.0 / delta_t
         nsteps = int(math.floor(t_obs / timestep))
-        print "Equilibrating at %s for %d steps..." % (str(elevated_temperature), nsteps)
+        print("Equilibrating at %s for %d steps..." % (str(elevated_temperature), nsteps))
         integrator = LangevinIntegrator(elevated_temperature, collision_rate, timestep)
         context = Context(system, integrator, platform)
         context.setPositions(coordinates)
@@ -482,7 +483,7 @@ def multitemp_driver():
         # Quench to final temperature
         collision_rate = 1.0 / delta_t
         nsteps = int(math.floor(t_obs / timestep))
-        print "Quenching to %s for %d steps..." % (str(quenched_temperature), nsteps)
+        print("Quenching to %s for %d steps..." % (str(quenched_temperature), nsteps))
         integrator = LangevinIntegrator(quenched_temperature, collision_rate, timestep)
         context = Context(system, integrator, platform)
         context.setPositions(coordinates)
@@ -498,28 +499,28 @@ def multitemp_driver():
     svalues = [0.00, 0.01, 0.02, 0.03, 0.04, 0.06] # minimal set of s values
     Tvalues = [0.70, 0.80, 0.90, 1.00, 1.10, 1.20] # some made-up temperatures
                
-    print "Initializing transition path sampling ensembles..."
+    print("Initializing transition path sampling ensembles...")
     ensembles = [ TransitionPathSampling(system, N, NA, mass, epsilon, sigma, timestep, nsteps_per_frame, nframes, T * T_reduced_unit, s * s_reduced_unit, platform=platform) for (s,T) in zip(svalues,Tvalues) ]
 
     trajectory = None
     if seed:
         # Generate an initial trajectory at zero field
-        print "Generating seed trajectory for TPS..."
+        print("Generating seed trajectory for TPS...")
         trajectory = ensembles[0].generateTrajectory(coordinates, nframes)
 
     # Initialize replica-exchange TPS simulation.
-    print "Initializing replica-exchange TPS..."
+    print("Initializing replica-exchange TPS...")
     simulation = ReplicaExchangeTPS(system, ensembles, trajectory, ncfilename)
 
     # Set simulation parameters.
     simulation.number_of_iterations = 10
 
     # Run simulation
-    print "Running replica-exchange TPS..."
-    print "(I'll buy you a beer if you actually get this to work.)"
+    print("Running replica-exchange TPS...")
+    print("(I'll buy you a beer if you actually get this to work.)")
     simulation.run()
 
-    print "And there was much rejoicing!"
+    print("And there was much rejoicing!")
 
 if __name__ == "__main__":
     #import doctest

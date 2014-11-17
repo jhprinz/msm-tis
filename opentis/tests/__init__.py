@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 from opentis.storage import Storage, TrajectoryStorage, SnapshotStorage
 from opentis.trajectory import Trajectory
 from opentis.Simulator import Simulator
 import mdtraj as md
 
-from test_helpers import data_filename
+from .test_helpers import data_filename
 
 def setup_package():
     # this should generate the trajectory.nc file which we'll use for

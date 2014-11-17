@@ -4,6 +4,8 @@ Created on 06.07.2014
 @author: JDC Chodera
 @author: JH Prinz
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 import netCDF4 as netcdf # for netcdf interface provided by netCDF4 in enthought python
 import pickle
@@ -15,14 +17,14 @@ import simtk.openmm.app
 from simtk.unit import amu
 import mdtraj as md
 
-from object_storage import ObjectStorage
-from trajectory_store import TrajectoryStorage, SampleStorage
-from snapshot_store import SnapshotStorage, ConfigurationStorage, MomentumStorage
-from ensemble_store import EnsembleStorage
+from .object_storage import ObjectStorage
+from .trajectory_store import TrajectoryStorage, SampleStorage
+from .snapshot_store import SnapshotStorage, ConfigurationStorage, MomentumStorage
+from .ensemble_store import EnsembleStorage
 from opentis.shooting import ShootingPointSelector, ShootingPoint
 from opentis.pathmover import PathMover, MoveDetails
 from opentis.globalstate import GlobalState
-from orderparameter_store import ObjectDictStorage
+from .orderparameter_store import ObjectDictStorage
 from opentis.orderparameter import OrderParameter
 from opentis.snapshot import Snapshot
 from opentis.trajectory import Trajectory
@@ -119,7 +121,7 @@ class Storage(netcdf.Dataset):
 
             if len(self.pdb) > 0:
                 if os.path.isfile('tempXXX.pdb'):
-                    print "File tempXXX.pdb exists - no overwriting! Quitting"
+                    print("File tempXXX.pdb exists - no overwriting! Quitting")
 
                 # Create a temporary file since mdtraj cannot read from string
                 with open ('tempXXX.pdb', "w") as myfile:
@@ -237,7 +239,7 @@ class Storage(netcdf.Dataset):
             option_value = getattr(obj, option_name)            
             self._store_single_option(ncgrp_options, option_name, option_value)
             
-            if self.verbose_root: print "Storing option: %s -> %s (type: %s)" % (option_name, option_value, type(option_value))            
+            if self.verbose_root: print("Storing option: %s -> %s (type: %s)" % (option_name, option_value, type(option_value)))            
 
     def _restore_options(self, obj, group_name = 'options'):
         """
@@ -246,7 +248,7 @@ class Storage(netcdf.Dataset):
         
         self.verbose_root = False
 
-        if self.verbose_root: print "Attempting to restore options from NetCDF file..."
+        if self.verbose_root: print("Attempting to restore options from NetCDF file...")
 
         # Make sure this NetCDF file contains option information
         if not group_name in self.groups:
@@ -262,7 +264,7 @@ class Storage(netcdf.Dataset):
             option_value = self._restore_single_option(ncgrp_options, option_name)
             
             # Store option.
-            if self.verbose_root: print "Restoring option: %s -> %s (type: %s)" % (option_name, str(option_value), type(option_value))
+            if self.verbose_root: print("Restoring option: %s -> %s (type: %s)" % (option_name, str(option_value), type(option_value)))
             setattr(obj, option_name, option_value)
             
         # Signal success.

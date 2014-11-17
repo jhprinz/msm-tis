@@ -1,6 +1,8 @@
+from __future__ import print_function
+from __future__ import absolute_import
 from nose.tools import assert_equal, assert_not_equal, raises
 from nose.plugins.skip import SkipTest
-from test_helpers import CallIdentity, prepend_exception_message
+from .test_helpers import CallIdentity, prepend_exception_message
 
 from opentis.volume import LambdaVolume
 from opentis.ensemble import *
@@ -655,10 +657,10 @@ class testSequentialEnsemble(EnsembleTest):
                    'upper_in_out_in' : False,
                    'upper_in_out' : True
                   }
-        print
+        print()
         for test in results.keys():
             failmsg = "Failure in "+test+"("+str(ttraj[test])+"): "
-            print test,
+            print(test, end=' ')
             self._single_test(ensemble, 
                                 ttraj[test], results[test], failmsg)
 

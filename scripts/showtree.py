@@ -1,3 +1,4 @@
+from __future__ import print_function
 import svgwrite
 import sys
 import argparse
@@ -40,7 +41,7 @@ if __name__ == '__main__':
     degrees = 180/3.14159 # psi reports in radians; I think in degrees
 
     if not os.path.isfile(file):
-        print file, 'does not exist ! ENDING!'
+        print(file + ' does not exist ! ENDING!')
         exit()
 
     storage = Storage(

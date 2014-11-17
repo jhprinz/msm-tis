@@ -47,7 +47,7 @@ class PathAlgorithm(object):
             # Reject
             self.accepted = False
         
-        return self.next()
+        return next(self)
     
     def next(self):
         if self.accepted is True:

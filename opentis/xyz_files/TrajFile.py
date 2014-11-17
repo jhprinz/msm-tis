@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import math
 
@@ -57,7 +58,7 @@ def matrix_vect_mul(m, v):
         v2 = m[6]*v[0] + m[7]*v[1] + m[8]*v[2]
         res = [v0, v1, v2]
     else:
-        print "problem with fast mv multiplier: m,v=",m,v
+        print("problem with fast mv multiplier: m,v=",m,v)
         quit()
     return res
 
@@ -66,7 +67,7 @@ def matrix_inv(m):
         rdet = 1.0/(m[0]*m[3]-m[1]*m[2])
         minv = [ m[3]*rdet, -m[1]*rdet, -m[2]*rdet, m[0]*rdet ]
     else:
-        print "only have fast inversion for 2D systems"
+        print("only have fast inversion for 2D systems")
         quit()
     return minv
 

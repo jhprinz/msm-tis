@@ -1,3 +1,4 @@
+from __future__ import print_function
 import svgwrite
 import sys
 import argparse
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     show_psi = args.psi
 
     if not os.path.isfile(file):
-        print file, 'does not exist ! ENDING!'
+        print(file + ' does not exist ! ENDING!')
         exit()
 
     storage = Storage(
@@ -42,14 +43,14 @@ if __name__ == '__main__':
 
 
     def headline(s):
-        print
-        print "###################################################################################"
-        print "##", s.upper()
-        print "###################################################################################"
-        print
+        print()
+        print("###################################################################################")
+        print("##", s.upper())
+        print("###################################################################################")
+        print()
 
     def line(a, b):
-        print '    {:<32} : {:<30}'.format(a,b)
+        print('    {:<32} : {:<30}'.format(a,b))
 
     headline("General")
 

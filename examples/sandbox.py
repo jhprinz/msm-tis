@@ -3,6 +3,7 @@ Created on 08.07.2014
 
 @author: Jan-Hendrik Prinz
 '''
+from __future__ import print_function
 
 import numpy as np
 
@@ -25,9 +26,6 @@ if __name__ == '__main__':
     PathMover.simulator = simulator
     storage = simulator.storage
 
-    print "Currently", simulator.storage.trajectory.count(), "simulations in the storage"
-    print "Currently", simulator.storage.configuration.count(), "total frames in the storage"
-
     Trajectory.storage = simulator.storage.trajectory
 
     if simulator.storage.trajectory.count() == 0:
@@ -38,7 +36,7 @@ if __name__ == '__main__':
         traj = simulator.generate(snapshot, [LengthEnsemble(slice(0,6))])
         simulator.storage.trajectory.save(traj)
 
-        print len(traj)
+        print(len(traj))
 
         # Save as Multi-Frame pdb  (only alanine, no water ! and overwrite existing)
         traj.solute.md().save_pdb('data/mdtraj.pdb', True)
@@ -48,7 +46,7 @@ if __name__ == '__main__':
         cc = storage.snapshot.load(0)
         op = OP_RMSD_To_Lambda('lambda1', cc, 0.00, 1.00, atom_indices=simulator.solute_indices)
         storage.collectivevariable.restore(op)
-        print op(Trajectory.storage.load(1)[0:2])
+        print(op(Trajectory.storage.load(1)[0:2]))
         dd = simulator.storage.trajectory.load(1)[ 0:6 ]
         lV = LambdaVolume(op, 0.0, 0.06)
         lV2 = LambdaVolume(op, 0.0, 0.08)
@@ -73,18 +71,18 @@ if __name__ == '__main__':
 #        op.save()
 
         stime = time.time()
-        print tis.locate(dd, lazy=True, overlap=1)
-        print time.time() - stime
+        print(tis.locate(dd, lazy=True, overlap=1))
+        print(time.time() - stime)
         stime = time.time()
-        print tis.locate(dd, lazy=False, overlap=1)
-        print time.time() - stime
+        print(tis.locate(dd, lazy=False, overlap=1))
+        print(time.time() - stime)
 
         stime = time.time()
-        print enAB.locate(dd, lazy=True, overlap=1)
-        print time.time() - stime
+        print(enAB.locate(dd, lazy=True, overlap=1))
+        print(time.time() - stime)
         stime = time.time()
-        print enAB.locate(dd, lazy=False, overlap=1)
-        print time.time() - stime
+        print(enAB.locate(dd, lazy=False, overlap=1))
+        print(time.time() - stime)
 
         # This is to cache the values for all snapshots in tt. Makes later access MUCH faster. 
         # Especially because the frames do not have to be read one by one.
@@ -92,8 +90,8 @@ if __name__ == '__main__':
         # print tis
 #        print [ s.idx for s in tt]
 #        print [ (lV(d)) for d in tt ]
-        print "Results :"
-        print [ op(d) for d in dd ]
+        print("Results :")
+        print([ op(d) for d in dd ])
         
         # This tests, if the iteration request works. It basically return True if it makes sense to simulate or if the ensemble cannot
         # be true in the next step. This should be passed to the pathmover to stop simulating for a particular ensemble
@@ -103,33 +101,33 @@ if __name__ == '__main__':
                 state = 0
                 )
 
-        print "Iteration test"
+        print("Iteration test")
         for l in range(0,tt.frames + 0):
-            print tis.forward(tt[0:l]), tis(tt[0:l]), lV(tt[l]), lV2(tt[l]), vn(tt[l]), vn.cell(tt[l])
+            print(tis.forward(tt[0:l]), tis(tt[0:l]), lV(tt[l]), lV2(tt[l]), vn(tt[l]), vn.cell(tt[l]))
 
-        print "Iteration test"
+        print("Iteration test")
         for l in range(0,tt.frames + 0):
-            print tis.forward(tt[0:l]), tis(tt[0:l]), lV(tt[l]), lV2(tt[l]), vn(tt[l]), vn.cell(tt[l])
+            print(tis.forward(tt[0:l]), tis(tt[0:l]), lV(tt[l]), lV2(tt[l]), vn(tt[l]), vn.cell(tt[l]))
 
-        print op(tt[0])
+        print(op(tt[0]))
         s = Snapshot(coordinates=tt[0].coordinates)
-        print op(s)
+        print(op(s))
 
         # Check if the trajectory goes from lambda < 0.06 to lambda >0.08 and back    
-        print 'In ensemble'
-        print tis(tt)
+        print('In ensemble')
+        print(tis(tt))
         
         en = ef.A2BEnsemble(lV, lV, True)
-        print en(tt)
+        print(en(tt))
 
         en = InXEnsemble(lV, 0)
-        print en(tt)
+        print(en(tt))
 
         en = InXEnsemble(lV, -1)
-        print en(tt)
+        print(en(tt))
 
         en = OutXEnsemble(lV, slice(1,-1), lazy = False)
-        print en(tt)
+        print(en(tt))
 
         storage.ensemble.save(en)
 
@@ -158,29 +156,29 @@ if __name__ == '__main__':
 
         storage.sample.save(pth)
 
-        print pth.details.json
+        print(pth.details.json)
 
         loaded = storage.pathmover.load(mm.idx[storage])
 
-        print 'ensemble Check :', mm.ensemble(pth.trajectory)
+        print('ensemble Check :', mm.ensemble(pth.trajectory))
 
-        print mm.ensemble(pth.details.final)
-        print 'Accepted : ', pth.details.accepted
-        print len(pth.details.final)
+        print(mm.ensemble(pth.details.final))
+        print('Accepted : ', pth.details.accepted)
+        print(len(pth.details.final))
         
-        print 'Next Check:'
+        print('Next Check:')
 
         en = ef.A2BEnsemble(lV, lV, True)
-        print en(pth.details.final)
+        print(en(pth.details.final))
 
         en = InXEnsemble(lV, 0)
-        print en(pth.details.final)
+        print(en(pth.details.final))
 
         en = InXEnsemble(lV, -1)
-        print en(pth.details.final)
+        print(en(pth.details.final))
 
         en = OutXEnsemble(lV, slice(1, -1), lazy = False)
-        print en(pth.details.final)
+        print(en(pth.details.final))
 
         op.save(storage=storage.collectivevariable)
 
@@ -201,7 +199,7 @@ if __name__ == '__main__':
     
 #    print msm.assign_all_trajectories()
         
-    print "Interfaces"    
+    print("Interfaces")    
     # Create Interaces around first and last frame of the first trajectory and use only solute coordinates
     
     traj = simulator.storage.trajectory(1)[ [0,-1] ].solute
@@ -220,8 +218,8 @@ if __name__ == '__main__':
                     
         n = np.zeros(weights.shape, dtype='float')
         
-        print np.exp(-mbar.f_k)    
-        print N_k
+        print(np.exp(-mbar.f_k))    
+        print(N_k)
         
         index = 0
         
@@ -229,16 +227,16 @@ if __name__ == '__main__':
             n[index:index+int(n_samples),0:k+1] = 1.0
             index += int(n_samples)
             
-        print n
-        print weights[:,0]
-        print weights[:,2]
+        print(n)
+        print(weights[:,0])
+        print(weights[:,2])
     
         for i in range(5):
-            print np.sum(n[:,i] * weights[:,0])
+            print(np.sum(n[:,i] * weights[:,0]))
         
-        print np.sum(n * weights, axis=0)
+        print(np.sum(n * weights, axis=0))
                     
-        print np.sum(weights,axis=0)
+        print(np.sum(weights,axis=0))
                        
 #    Simulator.storage.ncfile.close()
 #    exit()
@@ -270,7 +268,7 @@ if __name__ == '__main__':
     for l in range(1,simulator.storage.number_of_trajectories()+1):
         traj = simulator.storage.trajectory(l)
 
-    print "Last"
+    print("Last")
     ltraj = simulator.storage.last_trajectory()
 
     initial = tis.split_into_connections(simulator.storage.last_trajectory())

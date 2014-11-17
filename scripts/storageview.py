@@ -16,7 +16,7 @@ if __name__ == '__main__':
     file = args.file
 
     if not os.path.isfile(file):
-        print(file, 'does not exist ! ENDING!')
+        print(file + ' does not exist ! ENDING!')
         exit()
 
     storage = Storage(
@@ -25,17 +25,17 @@ if __name__ == '__main__':
                                                      )
 
     def headline(s):
-        print
-        print "###################################################################################"
-        print "##", s.upper()
-        print "###################################################################################"
-        print
+        print()
+        print("###################################################################################")
+        print(("##", s.upper()))
+        print("###################################################################################")
+        print()
 
     def line(a, b):
-        print '    {:<32} : {:<30}'.format(a,b)
+        print('    {:<32} : {:<30}'.format(a,b))
 
     def nline(n, a, b):
-        print '     {:>4}] {:<25} : {:<30}'.format(n,a,b)
+        print('     {:>4}] {:<25} : {:<30}'.format(n,a,b))
 
 
     headline("General")
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
 
     for o_idx in range(0, storage.sample.count()):
-        print o_idx
+        print(o_idx)
         sample = storage.sample.load(o_idx)
 #        nline(o_idx, '', sample.details.json)
         nline(o_idx, str(sample.mover.name) + "/" + str(sample.details.mover.name), str([t.idx[storage] for t in sample.details.inputs]) +" -> " + str(sample.details.final.idx[storage]) + " in " + sample.ensemble.name + " [" + str(sample.ensemble.idx[storage]) + "]")

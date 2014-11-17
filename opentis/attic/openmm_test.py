@@ -5,6 +5,7 @@ Generate XML files from AMBER prmtop/inpcrd files.
 @date 6 Aug 2014
 
 """
+from __future__ import print_function
 
 import os, os.path
 import numpy
@@ -48,7 +49,7 @@ if not os.path.exists(rundir):
     os.makedirs(rundir)
 
 # Load the Amber format parameters and topology files.
-print "Reading prmtop and inpcrd..."
+print("Reading prmtop and inpcrd...")
 prmtop = app.AmberPrmtopFile(prmtop_filename)
 inpcrd = app.AmberInpcrdFile(inpcrd_filename, loadBoxVectors=True)
 box_vectors = inpcrd.getBoxVectors()
@@ -58,36 +59,36 @@ pdb_filename = os.path.join(rundir, "initial.pdb")
 write_pdb(pdb_filename, prmtop.topology, inpcrd.positions)
 
 # Create a System object using the parameters defined in the prmtop file.
-print "Creating system..."
+print("Creating system...")
 system = prmtop.createSystem(nonbondedMethod=nonbondedMethod, nonbondedCutoff=cutoff, constraints=constraints)
 
 # Add a Monte Carlo barostat.
-print "Adding barostat..."
+print("Adding barostat...")
 force = openmm.MonteCarloBarostat(pressure, temperature, barostatFrequency)
 system.addForce(force)
 
 # Write system.
-print "Serializing system..."
+print("Serializing system...")
 system_filename = os.path.join(rundir, "system.xml")
 write_file(system_filename, openmm.XmlSerializer.serialize(system))
 
 # Create a Langevin integrator with specified temperature, collision rate, and timestep.
-print "Creating and serializing integrator..."
+print("Creating and serializing integrator...")
 integrator = openmm.LangevinIntegrator(temperature, collision_rate, timestep)
 integrator_filename = os.path.join(rundir, "integrator.xml")
 write_file(integrator_filename, openmm.XmlSerializer.serialize(integrator))
 
 # Create a context.
-print "Creating context..."
+print("Creating context...")
 context = openmm.Context(system, integrator)
 
 # Set positions and box vectors.
-print "Setting positions and box vectors..."
+print("Setting positions and box vectors...")
 context.setPositions(inpcrd.positions)
 context.setPeriodicBoxVectors(*box_vectors)
 
 # Minimize the energy prior to simulation.
-print "Minimizing..."
+print("Minimizing...")
 minimizer = openmm.LocalEnergyMinimizer.minimize(context)
 state = context.getState(getPositions=True)
 minimized_positions = state.getPositions()
@@ -98,7 +99,7 @@ write_pdb(pdb_filename, prmtop.topology, minimized_positions)
 
 # Generate initial conditions.
 for clone_index in range(nclones):
-    print "Clone %d / %d..." % (clone_index, nclones)
+    print("Clone %d / %d..." % (clone_index, nclones))
     # Reset positions and box vectors
     context.setPositions(minimized_positions)
     context.setPeriodicBoxVectors(*box_vectors)
@@ -116,7 +117,7 @@ for clone_index in range(nclones):
     write_file(state_filename, serialized)
 
     # Test.
-    print "Testing with %d steps of integration..." % nsteps_to_test
+    print("Testing with %d steps of integration..." % nsteps_to_test)
     integrator.step(nsteps_to_test)
     state = context.getState(getEnergy=True)
     potential_energy = state.getPotentialEnergy()

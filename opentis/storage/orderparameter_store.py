@@ -1,5 +1,6 @@
-from object_storage import ObjectStorage
-from wrapper import loadcache, loadidentifiable
+from __future__ import absolute_import
+from .object_storage import ObjectStorage
+from .wrapper import loadcache, loadidentifiable
 from opentis.orderparameter import OrderParameter
 
 class ObjectDictStorage(ObjectStorage):

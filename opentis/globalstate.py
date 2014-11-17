@@ -1,4 +1,6 @@
-from wrapper import storable
+from __future__ import print_function
+from __future__ import absolute_import
+from .wrapper import storable
 
 @storable
 class GlobalState(dict):
@@ -36,11 +38,11 @@ class GlobalState(dict):
             if self[key] is None:
                 dict.__setitem__(self, key, value)
             else:
-                print 'Cannot set a trajectory for this Ensemble. Already set. ' \
-                      'Trajectories can only be set once. Otherwise moves are necessary!'
+                print('Cannot set a trajectory for this Ensemble. Already set. ' \
+                      'Trajectories can only be set once. Otherwise moves are necessary!')
 
         else:
-            print 'Cannot change size of GlobalState. Ensemble are fixed at creation!'
+            print('Cannot change size of GlobalState. Ensemble are fixed at creation!')
 
     def __getitem__(self, item):
         if type(item) is int:

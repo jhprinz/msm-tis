@@ -3,14 +3,16 @@ Created on 19.07.2014
 
 @author: Jan-Hendrik Prinz
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 
 import numpy as np
 
-from shooting import ShootingPoint
-from ensemble import ForwardAppendedTrajectoryEnsemble, BackwardPrependedTrajectoryEnsemble
-from ensemble import FullEnsemble
-from trajectory import Sample
-from wrapper import storable
+from .shooting import ShootingPoint
+from .ensemble import ForwardAppendedTrajectoryEnsemble, BackwardPrependedTrajectoryEnsemble
+from .ensemble import FullEnsemble
+from .trajectory import Sample
+from .wrapper import storable
 
 
 @storable
@@ -153,14 +155,14 @@ class ShootMover(PathMover):
 
         if details.accepted:
             rand = np.random.random()
-            print 'Proposal probability', self.selection_probability_ratio(details), '/ random :', rand
+            print('Proposal probability', self.selection_probability_ratio(details), '/ random :', rand)
             if (rand < self.selection_probability_ratio(details)):
                 details.success = True
                 details.result = details.final
 
         path = Sample(trajectory=details.result, mover=self, ensemble=self.ensemble, details=details)
 
-        print path
+        print(path)
         return path
     
     
@@ -170,7 +172,7 @@ class ForwardShootMover(ShootMover):
     '''
     def _generate(self, details):
         shooting_point = details.start_point.index
-        print "Shooting forward from frame %d" % shooting_point
+        print("Shooting forward from frame %d" % shooting_point)
         
         # Run until one of the stoppers is triggered
         partial_trajectory = PathMover.simulator.generate(
@@ -191,7 +193,7 @@ class BackwardShootMover(ShootMover):
     A pathmover that implements the backward shooting algorithm
     '''
     def _generate(self, details):
-        print "Shooting backward from frame %d" % details.start_point.index
+        print("Shooting backward from frame %d" % details.start_point.index)
 
         # Run until one of the stoppers is triggered
         partial_trajectory = PathMover.simulator.generate(

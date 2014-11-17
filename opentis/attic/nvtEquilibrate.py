@@ -11,6 +11,7 @@ setting up an nvt equilibration with position constraints
 
 
 """
+from __future__ import print_function
 
 #=============================================================================================
 # PARAMETERS
@@ -49,7 +50,7 @@ system = forcefield.createSystem(pdb.topology, nonbondedMethod=PME, nonbondedCut
 integrator = LangevinIntegrator(temperature, collision_rate, timestep)
 simulation = Simulation(pdb.topology, system, integrator, platform)
 simulation.context.setPositions(pdb.positions)
-print simulation.context.getPlatform().getName()  #Prints the name of the platform, openCL is selected by default
+print(simulation.context.getPlatform().getName())  #Prints the name of the platform, openCL is selected by default
 
 #Dirty Position Constraints for NVT
 Alanine_masses = np.zeros(Alanine_atoms, numpy.double)
@@ -65,6 +66,6 @@ simulation.step(nequib_steps)
 print('Saving...')
 	
 end_time = time.time()
-print "total time "+str(end_time-start_time)	
+print("total time "+str(end_time-start_time))	
 
 

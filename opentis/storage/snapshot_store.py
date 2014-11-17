@@ -1,9 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
 from simtk.unit import Quantity, nanometers, kilojoules_per_mole, picoseconds
 import numpy as np
 
 from opentis.snapshot import Snapshot, Configuration, Momentum
-from object_storage import ObjectStorage
-from wrapper import savecache, loadcache
+from .object_storage import ObjectStorage
+from .wrapper import savecache, loadcache
 from opentis.trajectory import Trajectory
 
 class SnapshotStorage(ObjectStorage):
@@ -206,12 +208,12 @@ class MomentumStorage(ObjectStorage):
         if momentum._velocities is not None:
             storage.variables['momentum_velocities'][idx,:,:] = (momentum.velocities / (nanometers / picoseconds)).astype(np.float32)
         else:
-            print 'ERROR : Momentum should not be empty'
+            print('ERROR : Momentum should not be empty')
         if momentum._kinetic_energy is not None:
             storage.variables['momentum_kinetic'][idx] = momentum.kinetic_energy / kilojoules_per_mole
         else:
             # TODO: No kinetic energy is not yet supported
-            print 'Think about how to handle this. It should only be None if loaded lazy and in this case it will never be saved.'
+            print('Think about how to handle this. It should only be None if loaded lazy and in this case it will never be saved.')
 
         # Force sync to disk to avoid data loss.
         storage.sync()

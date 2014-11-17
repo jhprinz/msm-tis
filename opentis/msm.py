@@ -3,6 +3,7 @@ Created on 06.07.2014
 
 @author: jan-hendrikprinz
 '''
+from __future__ import print_function
 
 import numpy as np
 
@@ -820,4 +821,4 @@ X = MSM(np.array([[0.9,0.02,0.08], [0.03,0.92,0.05], [0.01,0.02,0.97]]))
 
 All = 'all'
 
-print X.path_probabilities([0,([0,1], (0,1)),0])
+print(X.path_probabilities([0,([0,1], (0,1)),0]))

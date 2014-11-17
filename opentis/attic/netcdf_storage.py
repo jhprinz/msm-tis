@@ -4,6 +4,7 @@ Created on 06.07.2014
 @author: JDC Chodera
 @author: JH Prinz
 '''
+from __future__ import print_function
 
 import numpy
 
@@ -291,7 +292,7 @@ class NetCDFStorage(object):
         
         self.verbose_root = False
 
-        if self.verbose_root: print "Attempting to restore options from NetCDF file..."
+        if self.verbose_root: print("Attempting to restore options from NetCDF file...")
 
         # Make sure this NetCDF file contains option information
         if not 'options' in self.ncfile.groups:
@@ -318,7 +319,7 @@ class NetCDFStorage(object):
                 option_unit = eval(option_unit_name, vars(units))
                 option_value = units.Quantity(option_value, option_unit)
             # Store option.
-            if self.verbose_root: print "Restoring option: %s -> %s (type: %s)" % (obj_name, str(option_value), type(option_value))
+            if self.verbose_root: print("Restoring option: %s -> %s (type: %s)" % (obj_name, str(option_value), type(option_value)))
             setattr(obj, obj_name, option_value)
             
         # Signal success.

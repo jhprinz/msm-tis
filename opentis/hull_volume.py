@@ -1,9 +1,10 @@
 """
 @author David W.H. Swenson
 """
+from __future__ import absolute_import
 
-from hull import Hull
-from volume import Volume
+from .hull import Hull
+from .volume import Volume
 
 class HullVolume(Volume):
     '''Defines a Volume based on a Hull object.

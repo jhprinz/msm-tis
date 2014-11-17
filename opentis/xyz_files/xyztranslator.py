@@ -1,6 +1,7 @@
 """
 @author David W.H. Swenson
 """
+from __future__ import print_function
 
 import sys
 import os
@@ -179,7 +180,7 @@ class XYZTranslator(object):
             TrajFile.set_default_mass(topo_f)
             return self.trajfile_topology(topo_f)
         else:
-            print "Topology must be .xyz for now"
+            print("Topology must be .xyz for now")
         return None
 
     def trajfile_topology(self, trajfile):
@@ -342,7 +343,7 @@ class XYZTranslator(object):
         self.storage._restore_options(self) # not used? (for topol)
         # for now, topology must come from a separate file
         self.storage.topology = self.topology_from_file(self.topol_file)
-        print self.storage
+        print(self.storage)
         ntrajs = self.storage.number_of_trajectories()
         for traj_i in range(ntrajs):
             self.trajectory = self.storage.trajectory(traj_i+1)

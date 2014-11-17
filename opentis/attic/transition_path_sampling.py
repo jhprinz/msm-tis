@@ -3,6 +3,7 @@
 @author: ASJS Mey
 @author: JH Prinz
 '''
+from __future__ import print_function
 
 import numpy
 from simtk.unit import nanosecond, picosecond, nanometers, nanometer, picoseconds, femtoseconds, femtosecond
@@ -280,12 +281,12 @@ class TransitionPathSampling(object):
             # Pick a shooting direction.
             if (numpy.random.rand() < 0.5):
                 # Shoot forward.
-                print "Shooting forward from frame %d" % frame_index                
+                print("Shooting forward from frame %d" % frame_index)                
                 partial_trajectory = self.generateTrajectory(trajectory[frame_index].coordinates, nframes - frame_index - 1)
                 trial_trajectory = trajectory[0:frame_index] + partial_trajectory
             else:
                 # Shoot backwards
-                print "Shooting backward from frame %d" % frame_index                                
+                print("Shooting backward from frame %d" % frame_index)                                
                 partial_trajectory = self.generateTrajectory(trajectory[frame_index].coordinates, frame_index)
                 partial_trajectory.reverse()
                 trial_trajectory = partial_trajectory[:-1] + trajectory[frame_index:]
@@ -296,13 +297,13 @@ class TransitionPathSampling(object):
             nshift = numpy.random.random_integers(1, nframes-2)
             # Pick a shooting direction.
             if (numpy.random.rand() < 0.5):
-                print "Shifting by +%d" % nshift
+                print("Shifting by +%d" % nshift)
                 # Shoot forward from end.
                 partial_trajectory = self.generateTrajectory(trajectory[-1].coordinates, nshift)
                 trial_trajectory = trajectory[nshift:-1] + partial_trajectory
             else:
                 # Shoot backwards from beginning.
-                print "Shifting by -%d" % nshift
+                print("Shifting by -%d" % nshift)
                 partial_trajectory = self.generateTrajectory(trajectory[0].coordinates, nshift)
                 partial_trajectory.reverse()
                 trial_trajectory = partial_trajectory[:-1] + trajectory[0:-nshift]
@@ -319,13 +320,13 @@ class TransitionPathSampling(object):
         self.nattempted += 1
         if (log_P_accept > 0.0) or (numpy.random.rand() < math.exp(log_P_accept)):
             # Accept trajectory move.
-            print "Accepted."
+            print("Accepted.")
             self.naccepted += 1
             K_old = K_trial
             trajectory = trial_trajectory
         else:
             # Move was rejected
-            print "Rejected."            
+            print("Rejected.")            
             pass
 
         return trajectory

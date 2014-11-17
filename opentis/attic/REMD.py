@@ -11,6 +11,7 @@ Crude REMD simulation with method mixReplicas(iteration)
 
 
 """
+from __future__ import print_function
 
 #=============================================================================================
 # PARAMETERS
@@ -49,7 +50,7 @@ def mixReplicas(iteration):
 	attempts = 0.0
 	accepted = 0.0
         start_time = time.time()
-	print "attempting exchanges now.."
+	print("attempting exchanges now..")
 	for npair in range(len(simulations)-1):
 		attempts=attempts+1
 			
@@ -69,9 +70,9 @@ def mixReplicas(iteration):
 			temp = integrators[n1].getTemperature();
                 	integrators[n1].setTemperature(integrators[n2].getTemperature());
                 	integrators[n2].setTemperature(temp);
-	print "Percentage of accepted exchanges "+str((accepted/attempts)*100.0)
+	print("Percentage of accepted exchanges "+str((accepted/attempts)*100.0))
 	#reassign all the velocities
-	print "reassinging velocities"
+	print("reassinging velocities")
 	for replica in range(len(simulations)):
   		nparticles = system.getNumParticles()
 
@@ -109,30 +110,30 @@ for i in range(Alanine_atoms):
 	Alanine_masses[i]= system.getParticleMass(i)
 	system.setParticleMass(i, 0.0)
 for i in range(len(simulations)):
-	print "We are at temperature " + str(temperatures[i])
+	print("We are at temperature " + str(temperatures[i]))
 	#now positions are constraint of the Alanine and the NVT equilibration can be run
 	filename = 'nvtInfo'+str(i)+'.dat'
 	simulations[i].reporters.forward(StateDataReporter(filename, 100, step=True, potentialEnergy=True, temperature=True, separator=' '))
 	simulations[i].step(nequib_steps)
-print "Equilibration done..."
+print("Equilibration done...")
 #Reassigning the masses again
 for i in range(Alanine_atoms):
 	system.setParticleMass(i,Alanine_masses[i].value_in_unit(dalton))
-print "Production started ..."
+print("Production started ...")
 for iteration in range(max_iterations):
 	for i in range(len(simulations)):
-		print "We are at temperature " + str(integrators[i].getTemperature())
+		print("We are at temperature " + str(integrators[i].getTemperature()))
 		simulations[i].step(nsteps_per_iteration)
   		state = simulations[i].context.getState(getEnergy=True, enforcePeriodicBox = True)
-    	print "Iteration %5d / %5d | kinetic %8.3f kJ/mol | potential %8.3f kJ/mol" % (iteration, max_iterations, state.getKineticEnergy() / kilojoules_per_mole, state.getPotentialEnergy() / kilojoules_per_mole)
+    	print("Iteration %5d / %5d | kinetic %8.3f kJ/mol | potential %8.3f kJ/mol" % (iteration, max_iterations, state.getKineticEnergy() / kilojoules_per_mole, state.getPotentialEnergy() / kilojoules_per_mole))
 	#mix replicas
-	print "We can now exchange the replicas"
+	print("We can now exchange the replicas")
 	mixReplicas(iteration)
 
 
 ftime=time.time()
 
-print "total time taken is: "+ str(ftime-stime)
+print("total time taken is: "+ str(ftime-stime))
 
 
 

@@ -5,6 +5,7 @@ Created on 01.07.2014
 @author ASJS Mey
 @author: ...
 '''
+from __future__ import print_function
 
 import copy
 import numpy
@@ -95,10 +96,10 @@ class ReplicaExchangeTPS(object):
 
         """
         if self._initialized:
-            print "Replica-exchange simulation has already been initialized."
+            print("Replica-exchange simulation has already been initialized.")
             raise Exception("Already initialized.")
 
-        print "Initializing..."
+        print("Initializing...")
 
         # Allocate storage.
         self.replica_states     = numpy.zeros([self.nstates], numpy.int32) # replica_states[i] is the state that replica i is currently at
@@ -164,7 +165,7 @@ class ReplicaExchangeTPS(object):
         # Main loop
         while (self.iteration < self.number_of_iterations):
             start_time = time.time()
-            if self.verbose: print "\nIteration %d / %d" % (self.iteration+1, self.number_of_iterations)
+            if self.verbose: print("\nIteration %d / %d" % (self.iteration+1, self.number_of_iterations))
 
             # Attempt replica swaps to sample from equilibrium permuation of states associated with replicas.
             self._mix_replicas()
@@ -181,7 +182,7 @@ class ReplicaExchangeTPS(object):
             # Increment iteration counter.
             self.iteration += 1
             end_time = time.time()
-            if self.verbose: print "Iteration took %.3f s" % (end_time - start_time)
+            if self.verbose: print("Iteration took %.3f s" % (end_time - start_time))
 
         # Clean up and close storage files.
         self._finalize()
@@ -218,9 +219,9 @@ class ReplicaExchangeTPS(object):
         
         """
 
-        print "Computing activities..."
+        print("Computing activities...")
 
-        print "Computing trajectory probabilities..."
+        print("Computing trajectory probabilities...")
 
         # Compute path Hamiltonians for all replicas.
         for replica_index in range(self.nstates):
@@ -234,7 +235,7 @@ class ReplicaExchangeTPS(object):
             #print "replica %5d, x0 = %42s, K = %32s" % (replica_index, str(trajectory[0].coordinates[0,:]), str(self.activities[replica_index] / self.ensembles[replica_index].K_reduced_unit))
 
         # Compute log biasing probabilities for all replicas in all states.
-        print self.log_P_kl # DEBUG
+        print(self.log_P_kl) # DEBUG
         for replica_index in range(self.nstates):
             K = self.activities[replica_index]
             H = self.path_hamiltonians[replica_index]
@@ -242,21 +243,21 @@ class ReplicaExchangeTPS(object):
                 s = self.ensembles[state_index].s
                 beta = self.ensembles[state_index].beta
                 self.log_P_kl[replica_index,state_index] = - beta * H - s * K
-        print self.log_P_kl # DEBUG
+        print(self.log_P_kl) # DEBUG
         
         if self.verbose:
-            print "states = "
+            print("states = ")
             for replica_index in range(self.nstates):
-                print "%6d" % self.replica_states[replica_index],
-            print ""
-            print "path Hamiltonians = "
+                print("%6d" % self.replica_states[replica_index], end=' ')
+            print("")
+            print("path Hamiltonians = ")
             for replica_index in range(self.nstates):
-                print "%6.3f" % (self.path_hamiltonians[replica_index] / self.ensembles[replica_index].H_reduced_unit),
-            print ""            
-            print "activities = "
+                print("%6.3f" % (self.path_hamiltonians[replica_index] / self.ensembles[replica_index].H_reduced_unit), end=' ')
+            print("")            
+            print("activities = ")
             for replica_index in range(self.nstates):
-                print "%6.3f" % (self.activities[replica_index] / self.ensembles[replica_index].K_reduced_unit),
-            print ""                
+                print("%6.3f" % (self.activities[replica_index] / self.ensembles[replica_index].K_reduced_unit), end=' ')
+            print("")                
         return
 
     def _mix_replicas(self):
@@ -272,7 +273,7 @@ class ReplicaExchangeTPS(object):
 
         start_time = time.time()
 
-        print "self.nstates = %d" % self.nstates
+        print("self.nstates = %d" % self.nstates)
 
         # Determine number of swaps to attempt to ensure thorough mixing.
         # TODO: Replace this with analytical result computed to guarantee sufficient mixing.
@@ -284,18 +285,18 @@ class ReplicaExchangeTPS(object):
 
         # Show log P
         if self.verbose:
-            print "log_P[replica,state] ="
-            print self.log_P_kl # DEBUG            
-            print "%6s" % "",
+            print("log_P[replica,state] =")
+            print(self.log_P_kl) # DEBUG            
+            print("%6s" % "", end=' ')
             for jstate in range(self.nstates):
-                print "%6d" % jstate,
-            print ""
+                print("%6d" % jstate, end=' ')
+            print("")
             for ireplica in range(self.nstates):
-                print "%-6d" % ireplica,
+                print("%-6d" % ireplica, end=' ')
                 for jstate in range(self.nstates):
                     log_P = self.log_P_kl[ireplica,jstate]
-                    print "%8.3f" % log_P,
-                print ""
+                    print("%8.3f" % log_P, end=' ')
+                print("")
 
         # Attempt swaps to mix replicas.
         nswaps_accepted = 0
@@ -345,21 +346,21 @@ class ReplicaExchangeTPS(object):
         # TODO: Add this behind a verbose flag.
         if self.verbose:
             PRINT_CUTOFF = 0.001 # Cutoff for displaying fraction of accepted swaps.
-            print "Fraction of accepted swaps between states:"
-            print "%6s" % "",
+            print("Fraction of accepted swaps between states:")
+            print("%6s" % "", end=' ')
             for jstate in range(self.nstates):
-                print "%6d" % jstate,
-            print ""
+                print("%6d" % jstate, end=' ')
+            print("")
             for istate in range(self.nstates):
-                print "%-6d" % istate,
+                print("%-6d" % istate, end=' ')
                 for jstate in range(self.nstates):
                     P = self.swap_Pij_accepted[istate,jstate]
                     if (P >= PRINT_CUTOFF):
-                        print "%6.3f" % P,
+                        print("%6.3f" % P, end=' ')
                     else:
-                        print "%6s" % "",
-                print ""
-            print "Mixing of replicas took %.3f s" % (end_time - start_time)
+                        print("%6s" % "", end=' ')
+                print("")
+            print("Mixing of replicas took %.3f s" % (end_time - start_time))
 
         return
 
@@ -485,10 +486,10 @@ class ReplicaExchangeTPS(object):
             self.ncfile.variables['path_hamiltonians'][self.iteration,replica_index] = H / H_reduced_unit
 
         # Store log probabilities.
-        print "writing log_probabilities..." # DEBUG
-        print self.log_P_kl # DEBUG
+        print("writing log_probabilities...") # DEBUG
+        print(self.log_P_kl) # DEBUG
         self.ncfile.variables['log_probabilities'][self.iteration,:,:] = self.log_P_kl[:,:]
-        print self.log_P_kl # DEBUG
+        print(self.log_P_kl) # DEBUG
         
         # Store mixing statistics.
         self.ncfile.variables['mixing'][self.iteration,:,:] = self.swap_Pij_accepted[:,:]
@@ -516,7 +517,7 @@ class ReplicaExchangeTPS(object):
         self.n_frames = ncfile.variables['trajectory_coordinates'].shape[1]
         self.natoms = ncfile.variables['trajectory_coordinates'].shape[2]
 
-        print "iteration = %d, nstates = %d, natoms = %d" % (self.iteration, self.nstates, self.natoms)
+        print("iteration = %d, nstates = %d, natoms = %d" % (self.iteration, self.nstates, self.natoms))
 
         # Restore trajectories.
         self.trajectories = list()
@@ -539,10 +540,10 @@ class ReplicaExchangeTPS(object):
         self.replica_states = ncfile.variables['states'][self.iteration,:].copy()
 
         # Restore log probabilities.
-        print "Reading log probabilities..." # DEBUG
-        print self.log_P_kl # DEBUG
+        print("Reading log probabilities...") # DEBUG
+        print(self.log_P_kl) # DEBUG
         self.log_P_kl = ncfile.variables['log_probabilities'][self.iteration,:,:]
-        print self.log_P_kl # DEBUG
+        print(self.log_P_kl) # DEBUG
         
         # Restore activities
         for replica_index in range(self.nstates):

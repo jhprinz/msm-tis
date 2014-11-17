@@ -3,6 +3,7 @@
 @author: ASJS Mey
 @author: JH Prinz
 '''
+from __future__ import print_function
 
 import numpy as np 
 import math
@@ -40,7 +41,7 @@ class TransitionInterfaceSampling(object):
         self.interfaces = interfaces
         self.beta = 1/ (298 * units.kelvin * kB)
         
-        print "beta : ", self.beta
+        print("beta : ", self.beta)
 
         return
 
@@ -82,7 +83,7 @@ class TransitionInterfaceSampling(object):
         # Stopper
         stopper = self.interfaces.in_core
         
-        print "Using trajectory of length : ", nframes, " (max allowed : ", xframes, " )",
+        print("Using trajectory of length : ", nframes, " (max allowed : ", xframes, " )", end=' ')
         
         # Choose a shooting or shift move
         SHOOT_PROBABILITY = 1.0 # probability of picking a shooting move or a shift move
@@ -94,28 +95,28 @@ class TransitionInterfaceSampling(object):
             # Pick a shooting direction.
             if (np.random.rand() < 0.5):
                 # Shoot forward.
-                print "Shooting forward from frame %d" % frame_index
+                print("Shooting forward from frame %d" % frame_index)
                 l_max = xframes - frame_index - 1
                 partial_trajectory = self.simulator.generate(trajectory[frame_index], l_max, running = stopper)
-                print "Trial was ", len(partial_trajectory) + frame_index, " long"                
+                print("Trial was ", len(partial_trajectory) + frame_index, " long")                
                 if len(partial_trajectory) == l_max + 1:
-                    print "Rejected. Too long"            
+                    print("Rejected. Too long")            
                     trial_trajectory = trajectory
                 else:
-                    print "Accepted."
+                    print("Accepted.")
                     trial_trajectory = trajectory[0:frame_index] + partial_trajectory
             else:
                 # Shoot backwards
-                print "Shooting backward from frame %d" % frame_index     
+                print("Shooting backward from frame %d" % frame_index)     
                 l_max = xframes - nframes + frame_index
                 partial_trajectory = self.simulator.generate(trajectory[frame_index], l_max, running = stopper)
-                print "Trial was ", len(partial_trajectory) + nframes - frame_index, " long"                
+                print("Trial was ", len(partial_trajectory) + nframes - frame_index, " long")                
                 
                 if len(partial_trajectory) == l_max + 1:
-                    print "Rejected. Too long"            
+                    print("Rejected. Too long")            
                     trial_trajectory = trajectory
                 else:
-                    print "Accepted."
+                    print("Accepted.")
                     partial_trajectory.reverse()
                     trial_trajectory = partial_trajectory[:-1] + trajectory[frame_index:]
         else:
@@ -125,13 +126,13 @@ class TransitionInterfaceSampling(object):
             nshift = np.random.random_integers(1, nframes-2)
             # Pick a shooting direction.
             if (np.random.rand() < 0.5):
-                print "Shifting by +%d" % nshift
+                print("Shifting by +%d" % nshift)
                 # Shoot forward from end.
                 partial_trajectory = self.simulator.generate(trajectory[-1], xframes - nframes + nshift, running = stopper)
                 trial_trajectory = trajectory[nshift:-1] + partial_trajectory
             else:
                 # Shoot backwards from beginning.
-                print "Shifting by -%d" % nshift
+                print("Shifting by -%d" % nshift)
                 partial_trajectory = self.simulator.generate(trajectory[0], xframes - nframes + nshift, running = stopper)
                 partial_trajectory.reverse()
                 trial_trajectory = partial_trajectory[:-1] + trajectory[0:-nshift]

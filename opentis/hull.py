@@ -3,6 +3,7 @@ triangulation. Only contains fully independent objects.
 
 @author David W.H. Swenson
 """
+from __future__ import print_function
 import scipy.spatial as qhull
 import numpy as np
 
@@ -118,8 +119,8 @@ class Hull(object):
                 self.move_simplex_to_region(simplex, -2)
         if (verbose):
             passfail = "passes" if (testv) else "fails"
-            print "Edge from", self.vertices[edge.edge[0]], "to", \
-                    self.vertices[edge.edge[1]], passfail
+            print("Edge from", self.vertices[edge.edge[0]], "to", \
+                    self.vertices[edge.edge[1]], passfail)
 
     def check_edges(self):
         ''' Simple loop over all edges. See Hull.check_edge().  '''
@@ -199,8 +200,8 @@ class Hull(object):
                     for r in scanned:
                         isHole[r] = 1
                     hole_groups.append(scanned)
-        print isHole
-        print hole_groups
+        print(isHole)
+        print(hole_groups)
 
         for hole in [r for r in isHole.keys() if isHole[r]==1]:
             self.label_connected(self.regions[hole][0], 1)

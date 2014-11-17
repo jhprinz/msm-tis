@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from __future__ import print_function
 
 #=============================================================================================
 # GLOBAL IMPORTS
@@ -176,7 +177,7 @@ def KobAndersen(N=150, NA=None, A_fraction=0.8, principal_component_density=0.96
     a = Quantity(numpy.array([1.0, 0.0, 0.0], numpy.float32), nanometer) * length/nanometer
     b = Quantity(numpy.array([0.0, 1.0, 0.0], numpy.float32), nanometer) * length/nanometer
     c = Quantity(numpy.array([0.0, 0.0, 1.0], numpy.float32), nanometer) * length/nanometer
-    print "box edge length = %s" % str(length)
+    print("box edge length = %s" % str(length))
     system.setDefaultPeriodicBoxVectors(a, b, c)
 
     # Add particles to system.
@@ -228,8 +229,8 @@ def KobAndersen(N=150, NA=None, A_fraction=0.8, principal_component_density=0.96
     force.setNonbondedMethod(CustomNonbondedForce.CutoffPeriodic)
     cutoff = 2.5 * sigma_AA
     cutoff = min(cutoff, length/2.0*0.9999)
-    print "setting cutoff distance to %s" % str(cutoff)
-    print "twice cutoff is %s" % str(cutoff*2)
+    print("setting cutoff distance to %s" % str(cutoff))
+    print("twice cutoff is %s" % str(cutoff*2))
     force.setCutoffDistance(cutoff)    
 
     # Add nonbonded force term to the system.
@@ -718,12 +719,12 @@ class TransitionPathSampling(object):
             # Pick a shooting direction.
             if (numpy.random.rand() < 0.5):
                 # Shoot forward.
-                print "Shooting forward from frame %d" % frame_index                
+                print("Shooting forward from frame %d" % frame_index)                
                 partial_trajectory = self.generateTrajectory(trajectory[frame_index].coordinates, nframes - frame_index - 1)
                 trial_trajectory = trajectory[0:frame_index] + partial_trajectory
             else:
                 # Shoot backwards
-                print "Shooting backward from frame %d" % frame_index                                
+                print("Shooting backward from frame %d" % frame_index)                                
                 partial_trajectory = self.generateTrajectory(trajectory[frame_index].coordinates, frame_index)
                 partial_trajectory.reverse()
                 trial_trajectory = partial_trajectory[:-1] + trajectory[frame_index:]
@@ -734,13 +735,13 @@ class TransitionPathSampling(object):
             nshift = numpy.random.random_integers(1, nframes-2)
             # Pick a shooting direction.
             if (numpy.random.rand() < 0.5):
-                print "Shifting by +%d" % nshift
+                print("Shifting by +%d" % nshift)
                 # Shoot forward from end.
                 partial_trajectory = self.generateTrajectory(trajectory[-1].coordinates, nshift)
                 trial_trajectory = trajectory[nshift:-1] + partial_trajectory
             else:
                 # Shoot backwards from beginning.
-                print "Shifting by -%d" % nshift
+                print("Shifting by -%d" % nshift)
                 partial_trajectory = self.generateTrajectory(trajectory[0].coordinates, nshift)
                 partial_trajectory.reverse()
                 trial_trajectory = partial_trajectory[:-1] + trajectory[0:-nshift]
@@ -757,13 +758,13 @@ class TransitionPathSampling(object):
         self.nattempted += 1
         if (log_P_accept > 0.0) or (numpy.random.rand() < math.exp(log_P_accept)):
             # Accept run move.
-            print "Accepted."
+            print("Accepted.")
             self.naccepted += 1
             K_old = K_trial
             trajectory = trial_trajectory
         else:
             # Move was rejected
-            print "Rejected."            
+            print("Rejected.")            
             pass
 
         return trajectory
@@ -836,10 +837,10 @@ class ReplicaExchangeTPS(object):
 
         """
         if self._initialized:
-            print "Replica-exchange simulation has already been initialized."
+            print("Replica-exchange simulation has already been initialized.")
             raise Exception("Already initialized.")
 
-        print "Initializing..."
+        print("Initializing...")
 
         # Allocate storage.
         self.replica_states     = numpy.zeros([self.nstates], numpy.int32) # replica_states[i] is the state that replica i is currently at
@@ -905,7 +906,7 @@ class ReplicaExchangeTPS(object):
         # Main loop
         while (self.iteration < self.number_of_iterations):
             start_time = time.time()
-            if self.verbose: print "\nIteration %d / %d" % (self.iteration+1, self.number_of_iterations)
+            if self.verbose: print("\nIteration %d / %d" % (self.iteration+1, self.number_of_iterations))
 
             # Attempt replica swaps to sample from equilibrium permuation of states associated with replicas.
             self._mix_replicas()
@@ -922,7 +923,7 @@ class ReplicaExchangeTPS(object):
             # Increment iteration counter.
             self.iteration += 1
             end_time = time.time()
-            if self.verbose: print "Iteration took %.3f s" % (end_time - start_time)
+            if self.verbose: print("Iteration took %.3f s" % (end_time - start_time))
 
         # Clean up and close storage files.
         self._finalize()
@@ -954,9 +955,9 @@ class ReplicaExchangeTPS(object):
         
         """
 
-        print "Computing activities..."
+        print("Computing activities...")
 
-        print "Computing run probabilities..."
+        print("Computing run probabilities...")
 
         # Compute path Hamiltonians for all replicas.
         for replica_index in range(self.nstates):
@@ -970,7 +971,7 @@ class ReplicaExchangeTPS(object):
             #print "replica %5d, x0 = %42s, K = %32s" % (replica_index, str(run[0].coordinates[0,:]), str(self.activities[replica_index] / self.ensembles[replica_index].K_reduced_unit))
 
         # Compute log biasing probabilities for all replicas in all states.
-        print self.log_P_kl # DEBUG
+        print(self.log_P_kl) # DEBUG
         for replica_index in range(self.nstates):
             K = self.activities[replica_index]
             H = self.path_hamiltonians[replica_index]
@@ -978,21 +979,21 @@ class ReplicaExchangeTPS(object):
                 s = self.ensembles[state_index].s
                 beta = self.ensembles[state_index].beta
                 self.log_P_kl[replica_index,state_index] = - beta * H - s * K
-        print self.log_P_kl # DEBUG
+        print(self.log_P_kl) # DEBUG
         
         if self.verbose:
-            print "states = "
+            print("states = ")
             for replica_index in range(self.nstates):
-                print "%6d" % self.replica_states[replica_index],
-            print ""
-            print "path Hamiltonians = "
+                print("%6d" % self.replica_states[replica_index], end=' ')
+            print("")
+            print("path Hamiltonians = ")
             for replica_index in range(self.nstates):
-                print "%6.3f" % (self.path_hamiltonians[replica_index] / self.ensembles[replica_index].H_reduced_unit),
-            print ""            
-            print "activities = "
+                print("%6.3f" % (self.path_hamiltonians[replica_index] / self.ensembles[replica_index].H_reduced_unit), end=' ')
+            print("")            
+            print("activities = ")
             for replica_index in range(self.nstates):
-                print "%6.3f" % (self.activities[replica_index] / self.ensembles[replica_index].K_reduced_unit),
-            print ""                
+                print("%6.3f" % (self.activities[replica_index] / self.ensembles[replica_index].K_reduced_unit), end=' ')
+            print("")                
         return
 
     def _mix_replicas(self):
@@ -1008,7 +1009,7 @@ class ReplicaExchangeTPS(object):
 
         start_time = time.time()
 
-        print "self.nstates = %d" % self.nstates
+        print("self.nstates = %d" % self.nstates)
 
         # Determine number of swaps to attempt to ensure thorough mixing.
         # TODO: Replace this with analytical result computed to guarantee sufficient mixing.
@@ -1020,18 +1021,18 @@ class ReplicaExchangeTPS(object):
 
         # Show log P
         if self.verbose:
-            print "log_P[replica,state] ="
-            print self.log_P_kl # DEBUG            
-            print "%6s" % "",
+            print("log_P[replica,state] =")
+            print(self.log_P_kl) # DEBUG            
+            print("%6s" % "", end=' ')
             for jstate in range(self.nstates):
-                print "%6d" % jstate,
-            print ""
+                print("%6d" % jstate, end=' ')
+            print("")
             for ireplica in range(self.nstates):
-                print "%-6d" % ireplica,
+                print("%-6d" % ireplica, end=' ')
                 for jstate in range(self.nstates):
                     log_P = self.log_P_kl[ireplica,jstate]
-                    print "%8.3f" % log_P,
-                print ""
+                    print("%8.3f" % log_P, end=' ')
+                print("")
 
         # Attempt swaps to mix replicas.
         nswaps_accepted = 0
@@ -1081,21 +1082,21 @@ class ReplicaExchangeTPS(object):
         # TODO: Add this behind a verbose flag.
         if self.verbose:
             PRINT_CUTOFF = 0.001 # Cutoff for displaying fraction of accepted swaps.
-            print "Fraction of accepted swaps between states:"
-            print "%6s" % "",
+            print("Fraction of accepted swaps between states:")
+            print("%6s" % "", end=' ')
             for jstate in range(self.nstates):
-                print "%6d" % jstate,
-            print ""
+                print("%6d" % jstate, end=' ')
+            print("")
             for istate in range(self.nstates):
-                print "%-6d" % istate,
+                print("%-6d" % istate, end=' ')
                 for jstate in range(self.nstates):
                     P = self.swap_Pij_accepted[istate,jstate]
                     if (P >= PRINT_CUTOFF):
-                        print "%6.3f" % P,
+                        print("%6.3f" % P, end=' ')
                     else:
-                        print "%6s" % "",
-                print ""
-            print "Mixing of replicas took %.3f s" % (end_time - start_time)
+                        print("%6s" % "", end=' ')
+                print("")
+            print("Mixing of replicas took %.3f s" % (end_time - start_time))
 
         return
 
@@ -1221,10 +1222,10 @@ class ReplicaExchangeTPS(object):
             self.ncfile.variables['path_hamiltonians'][self.iteration,replica_index] = H / H_reduced_unit
 
         # Store log probabilities.
-        print "writing log_probabilities..." # DEBUG
-        print self.log_P_kl # DEBUG
+        print("writing log_probabilities...") # DEBUG
+        print(self.log_P_kl) # DEBUG
         self.ncfile.variables['log_probabilities'][self.iteration,:,:] = self.log_P_kl[:,:]
-        print self.log_P_kl # DEBUG
+        print(self.log_P_kl) # DEBUG
         
         # Store mixing statistics.
         self.ncfile.variables['mixing'][self.iteration,:,:] = self.swap_Pij_accepted[:,:]
@@ -1252,7 +1253,7 @@ class ReplicaExchangeTPS(object):
         self.n_frames = ncfile.variables['trajectory_coordinates'].shape[1]
         self.natoms = ncfile.variables['trajectory_coordinates'].shape[2]
 
-        print "iteration = %d, nstates = %d, natoms = %d" % (self.iteration, self.nstates, self.natoms)
+        print("iteration = %d, nstates = %d, natoms = %d" % (self.iteration, self.nstates, self.natoms))
 
         # Restore trajectories.
         self.trajectories = list()
@@ -1275,10 +1276,10 @@ class ReplicaExchangeTPS(object):
         self.replica_states = ncfile.variables['states'][self.iteration,:].copy()
 
         # Restore log probabilities.
-        print "Reading log probabilities..." # DEBUG
-        print self.log_P_kl # DEBUG
+        print("Reading log probabilities...") # DEBUG
+        print(self.log_P_kl) # DEBUG
         self.log_P_kl = ncfile.variables['log_probabilities'][self.iteration,:,:]
-        print self.log_P_kl # DEBUG
+        print(self.log_P_kl) # DEBUG
         
         # Restore activities
         for replica_index in range(self.nstates):
@@ -1349,25 +1350,25 @@ def driver():
     else:
         raise Exception("Unknown mode: %s" % mode)
 
-    print "UNCORRECTED TIMES"
-    print "timestep = %s" % str(timestep.in_units_of(femtosecond))
-    print "delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep)
-    print "tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep)
-    print "t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep)
+    print("UNCORRECTED TIMES")
+    print("timestep = %s" % str(timestep.in_units_of(femtosecond)))
+    print("delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep))
+    print("tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep))
+    print("t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep))
 
     # Determine integral number of steps per velocity randomization and number of trajectories
     nsteps_per_frame = int(round(delta_t / timestep)) # number of steps per run frame and velocity randomization
     nframes = int(round(t_obs / delta_t)) # number of frames per run
-    print "number of steps per run frame and velocity randomization = %d" % nsteps_per_frame
-    print "number of frames per run = %d" % nframes
+    print("number of steps per run frame and velocity randomization = %d" % nsteps_per_frame)
+    print("number of frames per run = %d" % nframes)
     # Correct delta_t and t_obs to be integral
     delta_t = nsteps_per_frame * timestep 
     t_obs = nframes * delta_t
-    print "CORRECTED TIMES (after rounding number of steps to integers)"
-    print "timestep = %s" % str(timestep.in_units_of(femtosecond))
-    print "delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep)
-    print "tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep)
-    print "t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep)
+    print("CORRECTED TIMES (after rounding number of steps to integers)")
+    print("timestep = %s" % str(timestep.in_units_of(femtosecond)))
+    print("delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep))
+    print("tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep))
+    print("t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep))
 
     # Replica-exchange filename
     ncfilename = 'repex.nc'
@@ -1388,7 +1389,7 @@ def driver():
                 
     if minimize:
         # Minimize the system prior to dynamics.
-        print "Minimizing with L-BFGS..."
+        print("Minimizing with L-BFGS...")
         # Initialize a minimizer with default options.
         minimizer = LocalEnergyMinimizer(system, verbose=True, platform=platform)
         # Minimize the initial coordinates.
@@ -1405,7 +1406,7 @@ def driver():
         # Equilibrate at high temperature.
         collision_rate = 1.0 / delta_t
         nsteps = int(math.floor(t_obs / timestep))
-        print "Equilibrating at %s for %d steps..." % (str(elevated_temperature), nsteps)
+        print("Equilibrating at %s for %d steps..." % (str(elevated_temperature), nsteps))
         integrator = LangevinIntegrator(elevated_temperature, collision_rate, timestep)
         context = Context(system, integrator, platform)
         context.setPositions(coordinates)
@@ -1418,7 +1419,7 @@ def driver():
         # Quench to final temperature
         collision_rate = 1.0 / delta_t
         nsteps = int(math.floor(t_obs / timestep))
-        print "Quenching to %s for %d steps..." % (str(quenched_temperature), nsteps)
+        print("Quenching to %s for %d steps..." % (str(quenched_temperature), nsteps))
         integrator = LangevinIntegrator(quenched_temperature, collision_rate, timestep)
         context = Context(system, integrator, platform)
         context.setPositions(coordinates)
@@ -1431,27 +1432,27 @@ def driver():
     s_reduced_unit = 1.0 / (sigma**2 * delta_t)
     #svalues = [0.00, 0.01, 0.02, 0.03, 0.04, 0.06] # minimal set of s values
     svalues = [0.00, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, -0.005]
-    print "Initializing transition path sampling ensembles..."
+    print("Initializing transition path sampling ensembles...")
     ensembles = [ TransitionPathSampling(system, N, NA, mass, epsilon, sigma, timestep, nsteps_per_frame, nframes, quenched_temperature, s * s_reduced_unit, platform=platform) for s in svalues ]
 
     trajectory = None
     if seed:
         # Generate an initial run at zero field
-        print "Generating seed run for TPS..."
+        print("Generating seed run for TPS...")
         trajectory = ensembles[0].generateTrajectory(coordinates, nframes)
 
     # Initialize replica-exchange TPS simulation.
-    print "Initializing replica-exchange TPS..."
+    print("Initializing replica-exchange TPS...")
     simulation = ReplicaExchangeTPS(system, ensembles, trajectory, ncfilename)
 
     # Set simulation parameters.
     simulation.number_of_iterations = 10000
 
     # Run simulation
-    print "Running replica-exchange TPS..."
+    print("Running replica-exchange TPS...")
     simulation.run()
         
-    print "Work Done :) Go home and have a beer."
+    print("Work Done :) Go home and have a beer.")
 
 #=============================================================================================
 # This driver sets up a simulation for multiple temperatures and s-values.
@@ -1495,25 +1496,25 @@ def multitemp_driver():
     else:
         raise Exception("Unknown mode: %s" % mode)
 
-    print "UNCORRECTED TIMES"
-    print "timestep = %s" % str(timestep.in_units_of(femtosecond))
-    print "delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep)
-    print "tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep)
-    print "t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep)
+    print("UNCORRECTED TIMES")
+    print("timestep = %s" % str(timestep.in_units_of(femtosecond)))
+    print("delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep))
+    print("tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep))
+    print("t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep))
 
     # Determine integral number of steps per velocity randomization and number of trajectories
     nsteps_per_frame = int(round(delta_t / timestep)) # number of steps per run frame and velocity randomization
     nframes = int(round(t_obs / delta_t)) # number of frames per run
-    print "number of steps per run frame and velocity randomization = %d" % nsteps_per_frame
-    print "number of frames per run = %d" % nframes
+    print("number of steps per run frame and velocity randomization = %d" % nsteps_per_frame)
+    print("number of frames per run = %d" % nframes)
     # Correct delta_t and t_obs to be integral
     delta_t = nsteps_per_frame * timestep 
     t_obs = nframes * delta_t
-    print "CORRECTED TIMES (after rounding number of steps to integers)"
-    print "timestep = %s" % str(timestep.in_units_of(femtosecond))
-    print "delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep)
-    print "tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep)
-    print "t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep)
+    print("CORRECTED TIMES (after rounding number of steps to integers)")
+    print("timestep = %s" % str(timestep.in_units_of(femtosecond)))
+    print("delta_t = %s (%f steps)" % (str(delta_t.in_units_of(picosecond)), delta_t / timestep))
+    print("tau = %s (%f steps)" % (str(tau.in_units_of(picosecond)), tau / timestep))
+    print("t_obs = %s (%f steps)" % (str(t_obs.in_units_of(picosecond)), t_obs / timestep))
 
     # Replica-exchange filename
     ncfilename = 'repex-Ts.nc' # DEBUG
@@ -1534,7 +1535,7 @@ def multitemp_driver():
                 
     if minimize:
         # Minimize the system prior to dynamics.
-        print "Minimizing with L-BFGS..."
+        print("Minimizing with L-BFGS...")
         # Initialize a minimizer with default options.
         minimizer = optimize.LBFGSMinimizer(system, verbose=True, platform=platform)
         # Minimize the initial coordinates.
@@ -1549,7 +1550,7 @@ def multitemp_driver():
         # Equilibrate at high temperature.
         collision_rate = 1.0 / delta_t
         nsteps = int(math.floor(t_obs / timestep))
-        print "Equilibrating at %s for %d steps..." % (str(elevated_temperature), nsteps)
+        print("Equilibrating at %s for %d steps..." % (str(elevated_temperature), nsteps))
         integrator = LangevinIntegrator(elevated_temperature, collision_rate, timestep)
         context = Context(system, integrator, platform)
         context.setPositions(coordinates)
@@ -1562,7 +1563,7 @@ def multitemp_driver():
         # Quench to final temperature
         collision_rate = 1.0 / delta_t
         nsteps = int(math.floor(t_obs / timestep))
-        print "Quenching to %s for %d steps..." % (str(quenched_temperature), nsteps)
+        print("Quenching to %s for %d steps..." % (str(quenched_temperature), nsteps))
         integrator = LangevinIntegrator(quenched_temperature, collision_rate, timestep)
         context = Context(system, integrator, platform)
         context.setPositions(coordinates)
@@ -1578,28 +1579,28 @@ def multitemp_driver():
     svalues = [0.00, 0.01, 0.02, 0.03, 0.04, 0.06] # minimal set of s values
     Tvalues = [0.70, 0.80, 0.90, 1.00, 1.10, 1.20] # some made-up temperatures
                
-    print "Initializing transition path sampling ensembles..."
+    print("Initializing transition path sampling ensembles...")
     ensembles = [ TransitionPathSampling(system, N, NA, mass, epsilon, sigma, timestep, nsteps_per_frame, nframes, T * T_reduced_unit, s * s_reduced_unit, platform=platform) for (s,T) in zip(svalues,Tvalues) ]
 
     trajectory = None
     if seed:
         # Generate an initial run at zero field
-        print "Generating seed run for TPS..."
+        print("Generating seed run for TPS...")
         trajectory = ensembles[0].generateTrajectory(coordinates, nframes)
 
     # Initialize replica-exchange TPS simulation.
-    print "Initializing replica-exchange TPS..."
+    print("Initializing replica-exchange TPS...")
     simulation = ReplicaExchangeTPS(system, ensembles, trajectory, ncfilename)
 
     # Set simulation parameters.
     simulation.number_of_iterations = 10
 
     # Run simulation
-    print "Running replica-exchange TPS..."
-    print "(I'll buy you a beer if you actually get this to work.)"
+    print("Running replica-exchange TPS...")
+    print("(I'll buy you a beer if you actually get this to work.)")
     simulation.run()
 
-    print "And there was much rejoicing!"
+    print("And there was much rejoicing!")
 
 if __name__ == "__main__":
     #import doctest

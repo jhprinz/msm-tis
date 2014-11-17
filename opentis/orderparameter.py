@@ -1,12 +1,14 @@
+from __future__ import print_function
+from __future__ import absolute_import
 ###############################################################
 #| CLASS Order Parameter
 ###############################################################
 
 from msmbuilder.metrics import RMSD
-from trajectory import Trajectory
-from snapshot import Configuration, Snapshot
+from .trajectory import Trajectory
+from .snapshot import Configuration, Snapshot
 import numpy as np
-from wrapper import storable
+from .wrapper import storable
 class ObjectDict(dict):
     """
     A cache that is attached to Configuration indices store in the Configuration storage
@@ -102,7 +104,7 @@ class StorableObjectDict(ObjectDict):
 
         for s in self.object_storages:
             if s.content_class is not key_class:
-                print 'One of the storages does not store objects of type :', key_class.__name__
+                print('One of the storages does not store objects of type :', key_class.__name__)
                 return
 
         for s in self.object_storages:

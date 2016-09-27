@@ -7,8 +7,9 @@ import numpy as np
 import mdtraj as md
 import simtk.unit as u
 
-from openpathsampling.netcdfplus import StorableObject
+from openpathsampling.netcdfplus import StorableObject, LoaderProxy
 import openpathsampling as paths
+
 
 # ==============================================================================
 # TRAJECTORY

@@ -159,7 +159,8 @@ class Storage(NetCDFPlus):
             'production': self.production_cache_sizes,
             'off': self.no_cache_sizes,
             'lowmemory': self.lowmemory_cache_sizes,
-            'memtest': self.memtest_cache_sizes
+            'memtest': self.memtest_cache_sizes,
+            'fast': self.fast_cache_sizes
         }
 
         if mode in available_cache_sizes:
@@ -231,6 +232,37 @@ class Storage(NetCDFPlus):
             'msouters': True,
             'details': False,
             'steps': WeakLRUCache(1000),
+            'topologies': True
+        }
+
+    @staticmethod
+    def fast_cache_sizes():
+        """
+        Cache sizes for standard sessions for medium production and analysis.
+
+        """
+
+        return {
+            'trajectories': True,
+            'snapshots': True,
+            'statics': WeakLRUCache(10000),
+            'kinetics': WeakLRUCache(10000),
+            'samples': True,
+            'samplesets': True,
+            'cvs': True,
+            'pathmovers': True,
+            'shootingpointselectors': True,
+            'engines': True,
+            'pathsimulators': True,
+            'volumes': True,
+            'ensembles': True,
+            'movechanges': True,
+            'transitions': True,
+            'networks': True,
+            'interfacesets': True,
+            'msouters': True,
+            'details': True,
+            'steps': True,
             'topologies': True
         }
 
@@ -424,7 +456,7 @@ class AnalysisStorage(Storage):
             mode='r'
         )
 
-        self.set_caching_mode('analysis')
+        self.set_caching_mode('fast')
 
         # Let's go caching
         AnalysisStorage.cache_for_analysis(self)

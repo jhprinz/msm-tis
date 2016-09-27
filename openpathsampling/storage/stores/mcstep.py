@@ -6,8 +6,14 @@ class MCStepStore(VariableStore):
     def __init__(self):
         super(MCStepStore, self).__init__(
             MCStep,
-            ['change', 'active', 'previous', 'simulation', 'mccycle']
+            ['simulation', 'mccycle', 'previous', 'active', 'change']
         )
+
+    simulation = None,
+    mccycle = -1,
+    previous = None,
+    active = None,
+    change = None
 
     def initialize(self, units=None):
         super(MCStepStore, self).initialize()

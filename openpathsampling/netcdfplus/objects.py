@@ -1476,9 +1476,29 @@ class VariableStore(ObjectStore):
         if not part:
             return
 
+        # import time
+        #
+        # for var in self.var_names:
+        #     print var,
+        #     t1 = time.time()
+        #     _ = map(self.vars[var].store.__getitem__, part) \
+        #             if 'lazy' not in self.vars[var].var_type and self.vars[var].store is not None \
+        #         else self.storage.vars[self.prefix + '_' + var][part]
+        #
+        #     print time.time() - t1
+
         if not self._cached_all:
+            # data = zip(*[
+            #     map(self.vars[var].store.__getitem__, part) \
+            #         if 'lazy' not in self.vars[var].var_type and self.vars[var].store is not None \
+            #         else self.storage.vars[self.prefix + '_' + var][part]
+            #     for var in self.var_names
+            # ])
+
             data = zip(*[
-                self.storage.variables[self.prefix + '_' + var][part]
+                map(self.vars[var].store.__getitem__, part) \
+                    if 'lazy' not in self.vars[var].var_type and self.vars[var].store is not None \
+                    else self.storage.vars[self.prefix + '_' + var][part]
                 for var in self.var_names
             ])
 
@@ -1488,9 +1508,10 @@ class VariableStore(ObjectStore):
 
     def add_to_cache(self, idx, data):
         if idx not in self.cache:
-            attr = {var: self.vars[var].getter(data[nn])
-                    for nn, var in enumerate(self.var_names)}
-            obj = self.content_class(**attr)
+            # attr = {var: self.vars[var].getter(data[nn])
+            #         for nn, var in enumerate(self.var_names)}
+            # obj = self.content_class(**attr)
+            obj = self.content_class(*data)
             self._get_id(idx, obj)
 
             self.index[obj] = idx

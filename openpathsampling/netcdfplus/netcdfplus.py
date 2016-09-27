@@ -961,11 +961,13 @@ class NetCDFPlus(netCDF4.Dataset):
                         ]
                 else:
                     if var.var_type.startswith('obj.'):
-                        getter = lambda v: \
-                            None if v[0] == '-' else store.load(UUID(v))
+                        getter = lambda v: (None if v[0] == '-' \
+                            else store.load(UUID(v))) if isinstance(v, basestring) else \
+                            [None if w[0] == '-' else store.load(UUID(w)) for w in v]
                     elif var.var_type.startswith('lazyobj.'):
-                        getter = lambda v: None if v[0] == '-' \
-                            else LoaderProxy(store, UUID(v))
+                        getter = lambda v: (None if v[0] == '-' \
+                            else LoaderProxy(store, UUID(v))) if isinstance(v, basestring) else \
+                            [None if w[0] == '-' else LoaderProxy(store, UUID(w)) for w in v]
 
             if True or self.support_simtk_unit:
                 if hasattr(var, 'unit_simtk'):

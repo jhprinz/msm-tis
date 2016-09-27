@@ -12,3 +12,5 @@ import features
 
 from snapshot import Snapshot, MDSnapshot
 from openpathsampling.engines import NoEngine, SnapshotDescriptor
+
+from trajectory import ExternalMDTrajectory

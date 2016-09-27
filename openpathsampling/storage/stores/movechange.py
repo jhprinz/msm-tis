@@ -93,6 +93,7 @@ class MoveChangeStore(ObjectStore):
 
             if self.reference_by_uuid:
                 obj.__uuid__ = uuid
+
             self._get_id(pos, obj)
             self.index[obj] = pos
             self.cache[pos] = obj

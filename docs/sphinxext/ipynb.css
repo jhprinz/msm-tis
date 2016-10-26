@@ -11,7 +11,7 @@ padding: 6px 0px 2px 12px;
 font-family: Consolas,"Andale Mono WT","Andale Mono","Lucida Console","Lucida Sans Typewriter","DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono","Nimbus Mono L",Monaco,"Courier New",Courier,monospace;
 font-size: 12px;
 line-height: 1.0;
-display: block;
+display: none;
 overflow: auto;
 color: #404040;
 }
@@ -29,9 +29,27 @@ padding: 6px 0px 2px 12px;
 font-family: Consolas,"Andale Mono WT","Andale Mono","Lucida Console","Lucida Sans Typewriter","DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono","Nimbus Mono L",Monaco,"Courier New",Courier,monospace;
 font-size: 12px;
 line-height: 1.0;
-display: block;
+display: none;
 overflow: auto;
 color: #404040;
+}
+
+.input_area pre {
+    margin-left: 0em;
+    background: #f6f6f6;
+    margin-bottom: 0px;
+    /*border-left: solid 4px #e1e4e5;*/
+    /*border-top: solid 1px #e1e4e5;*/
+    /*border-bottom: solid 1px #e1e4e5;*/
+    padding-left: 1em;
+}
+
+.output_area pre {
+    margin-left: 0em;
+    padding-left: 1em;
+    background-color: white;
+    margin-top: 0px;
+    border-bottom: solid 1px #e1e4e5;
 }
 
 pre, code {
@@ -39,10 +57,9 @@ white-space: -moz-pre-wrap;
 white-space: -o-pre-wrap;
 word-wrap: break-word;
 max-width: 100%;
-padding: 12px 12px;
+padding: 8px 8px 4px 8px;
 background: #f6f6f6;
-border-bottom: solid 1px #e1e4e5;
-font-size: 75%;
+font-size: 12px;
 font-family: Consolas,"Andale Mono WT","Andale Mono","Lucida Console","Lucida Sans Typewriter","DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono","Nimbus Mono L",Monaco,"Courier New",Courier,monospace;
 color:#404040;
 overflow-x: auto;
@@ -88,7 +105,7 @@ outline-width: 0px;
 }
 
 .output_subarea {
-    margin : 8px 0px 24px 0px;
+    margin : 0px 0px 12px 0px;
 }
 
 .output_svg, .output_png {
@@ -111,9 +128,44 @@ outline-width: 0px;
 }
 
 .input {
-    margin-top:24px;
+    margin-top:12px;
 }
 
 img {
 width:auto;
+}
+
+/* Browser specific (not valid) styles to make preformatted text wrap */
+
+pre {
+ white-space: pre-wrap;       /* css-3 */
+ white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+ white-space: -pre-wrap;      /* Opera 4-6 */
+ white-space: -o-pre-wrap;    /* Opera 7 */
+ word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+h1, h2, h3, h4, h5, h6, legend {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.cell.border-box-sizing.code_cell {
+    margin-bottom: 0.5em;
+}
+
+.ipynotebook p {
+    margin-bottom: 12px;
+}
+
+.output_html {
+    overflow: auto;
+}
+
+.output_html td, .output_html th {
+    white-space: nowrap;
+}
+
+.output_html table {
+    margin: 0.5em;
 }

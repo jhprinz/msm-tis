@@ -20,10 +20,10 @@ class NotebookDirective(Directive):
     """
     required_arguments = 1
     optional_arguments = 1
-    option_spec = {'skip_exceptions' : directives.flag}
+    option_spec = {'skip_exceptions': directives.flag}
     final_argument_whitespace = True
 
-    def run(self): # check if there are spaces in the notebook name
+    def run(self):  # check if there are spaces in the notebook name
         nb_path = self.arguments[0]
         if ' ' in nb_path: raise ValueError(
             "Due to issues with docutils stripping spaces from links, white "
@@ -74,8 +74,8 @@ class NotebookDirective(Directive):
 
         print('[NotebookDirective] Evaluating %s' % nb_filename)
         start = time.time()
-#        evaluated_text = evaluate_notebook(nb_abs_path, dest_path_eval,
-#                                           skip_exceptions=skip_exceptions)
+        #        evaluated_text = evaluate_notebook(nb_abs_path, dest_path_eval,
+        #                                           skip_exceptions=skip_exceptions)
         evaluated_text = ''
         print('[NotebookDirective] Took %8.3fs seconds' %
               (time.time() - start))
@@ -118,22 +118,25 @@ class NotebookDirective(Directive):
 class notebook_node(nodes.raw):
     pass
 
+
 def nb_to_python(nb_path):
     """convert notebook to python script"""
     exporter = PythonExporter()
     output, resources = exporter.from_filename(nb_path)
     return output
 
+
 def nb_to_html(nb_path):
     """convert notebook to html"""
     exporter = HTMLExporter(template_file='full')
     output, resources = exporter.from_filename(nb_path)
-    header = output.split('<head>', 1)[1].split('</head>',1)[0]
-    body = output.split('<body>', 1)[1].split('</body>',1)[0]
+    header = output.split('<head>', 1)[1].split('</head>', 1)[0]
+    body = output.split('<body>', 1)[1].split('</body>', 1)[0]
 
     # http://imgur.com/eR9bMRH
     header = header.replace('<style', '<style scoped="scoped"')
-    header = header.replace('body {\n  overflow: visible;\n  padding: 8px;\n}\n', '')
+    header = header.replace(
+        'body {\n  overflow: visible;\n  padding: 8px;\n}\n', '')
     header = header.replace("code,pre{", "code{")
 
     header = header.replace('\n', '')
@@ -148,17 +151,18 @@ def nb_to_html(nb_path):
         'uneditable-input{',
         'collapse{',
     ]
-    filter_strings.extend(['h%s{' % (i+1) for i in range(6)])
+    filter_strings.extend(['h%s{' % (i + 1) for i in range(6)])
 
     line_begin_strings = [
         'pre{',
         'p{margin'
-        ]
+    ]
 
     header_lines = filter(
         lambda x: not any([s in x for s in filter_strings]), header.split('\n'))
     header_lines = filter(
-        lambda x: not any([x.startswith(s) for s in line_begin_strings]), header_lines)
+        lambda x: not any([x.startswith(s) for s in line_begin_strings]),
+        header_lines)
 
     header = '\n'.join(header_lines)
 
@@ -218,6 +222,6 @@ def setup(app):
     app.add_directive('notebook', NotebookDirective)
 
     return {
-        'parallel_read_safe' : True,
-        'parallel_write_safe' : True
+        'parallel_read_safe': True,
+        'parallel_write_safe': True
     }

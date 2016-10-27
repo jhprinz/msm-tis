@@ -1,6 +1,6 @@
 .. _treemixin:
 
-.. currentmodule:: openpathsampling.treelogic
+.. currentmodule:: openpathsampling
 
 TreeMixin
 =========

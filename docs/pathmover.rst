@@ -1,6 +1,6 @@
 .. _pathmover:
 
-.. currentmodule:: openpathsampling.pathmover
+.. currentmodule:: openpathsampling
 
 PathMover Functions
 ===================

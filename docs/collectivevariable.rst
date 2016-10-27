@@ -1,6 +1,6 @@
 .. _collectivevariable:
 
-.. currentmodule:: openpathsampling.collectivevariable
+.. currentmodule:: openpathsampling
 
 CollectiveVariable Functions
 ============================

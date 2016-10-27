@@ -1,8 +1,10 @@
 Overview of Engines
 ===================
 
+.. currentmodule:: openpathsampling.engines
+
 From the OpenPathSampling perspective, an engine must involve at least two
-parts: it must have a subclass of :class:`.Snapshot`, which describes the
+parts: it must have a subclass of :class:`.BaseSnapshot`, which describes the
 state of the system at a give point in time, and it must have a subclass of
 :class:`.DynamicsEngine`, which propagates the system through time. It also
 must create a :class:`.SnapshotDescriptor`, which tells the storage
@@ -18,7 +20,7 @@ typically called an "integrator."
 OPS is indifferent to the details of how these sorts of things are
 implemented in any specific engine. What matters is that the
 :class:`.DynamicsEngine` obeys the OPS API, and that OPS can interact with
-the :class:`Snapshots <.Snapshot>`.
+the :class:`Snapshots <.BaseSnapshot>`.
 
 The two engine APIs
 -------------------

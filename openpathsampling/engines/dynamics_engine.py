@@ -48,8 +48,7 @@ class EngineNaNError(EngineError):
 
 
 class DynamicsEngine(StorableNamedObject):
-    """
-    Wraps simulation tool (parameters, storage, etc.)
+    """Wraps a simulation tool (parameters, storage, etc.)
 
     Attributes
     ----------
@@ -367,16 +366,13 @@ class DynamicsEngine(StorableNamedObject):
         return stop
 
     def generate(self, snapshot, running=None, direction=+1):
-        r"""
-        Generate a trajectory consisting of ntau segments of tau_steps in
-        between storage of Snapshots.
+        r"""Generate a trajectory starting at snapshot until running is false
 
         Parameters
         ----------
-        snapshot : :class:`openpathsampling.snapshot.Snapshot`
+        snapshot : :class:`openpathsampling.Snapshot`
             initial coordinates and velocities in form of a Snapshot object
-        running : (list of)
-        function(:class:`openpathsampling.trajectory.Trajectory`)
+        running : (list of) function(:class:`openpathsampling.Trajectory`)
             callable function of a 'Trajectory' that returns True or False.
             If one of these returns False the simulation is stopped.
         direction : -1 or +1 (DynamicsEngine.FORWARD or DynamicsEngine.BACKWARD)
@@ -396,6 +392,7 @@ class DynamicsEngine(StorableNamedObject):
         If the returned trajectory has length n_frames_max it can still happen
         that it stopped because of the stopping criterion. You need to check
         in that case.
+
         """
 
         trajectory = None
@@ -413,18 +410,16 @@ class DynamicsEngine(StorableNamedObject):
 
     def iter_generate(self, initial, running=None, direction=+1,
                       intervals=10, max_length=0):
-        r"""
-        Return a generator that will generate a trajectory, returning the
-        current trajectory in given intervals
+        """Return a generator that will generate a trajectory
+
+        The current trajectory is returned in given intervals
 
         Parameters
         ----------
-        initial : :class:`openpathsampling.Snapshot` or
-        :class:`openpathsampling.Trajectory`
+        initial : :class:`openpathsampling.Snapshot` or :class:`openpathsampling.Trajectory`
             initial coordinates and velocities in form of a Snapshot object
             or a trajectory
-        running : (list of)
-        function(:class:`openpathsampling.trajectory.Trajectory`)
+        running : (list of) function(:class:`openpathsampling.trajectory.Trajectory`)
             callable function of a 'Trajectory' that returns True or False.
             If one of these returns False the simulation is stopped.
         direction : -1 or +1 (DynamicsEngine.FORWARD or DynamicsEngine.BACKWARD)
@@ -441,7 +436,7 @@ class DynamicsEngine(StorableNamedObject):
 
         Yields
         ------
-        trajectory : :class:`openpathsampling.trajectory.Trajectory`
+        trajectory : :class:`openpathsampling.Trajectory`
             generated trajectory of initial conditions, including initial
             coordinate set
 

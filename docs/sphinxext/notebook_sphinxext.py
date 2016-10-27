@@ -217,7 +217,8 @@ def setup(app):
     app.add_stylesheet('css/ipynb.css')
 
     app.add_node(notebook_node,
-                 html=(visit_notebook_node, depart_notebook_node))
+                 html=(visit_notebook_node, depart_notebook_node),
+                 latex=(visit_notebook_node, depart_notebook_node))
 
     app.add_directive('notebook', NotebookDirective)
 

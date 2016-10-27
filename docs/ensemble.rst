@@ -1,6 +1,6 @@
 .. _ensemble:
 
-.. currentmodule:: openpathsampling.ensemble
+.. currentmodule:: openpathsampling
 
 Ensembles API
 =============

@@ -1,6 +1,6 @@
 .. _volume:
 
-.. currentmodule:: openpathsampling.volume
+.. currentmodule:: openpathsampling
 
 Volume Functions
 ================

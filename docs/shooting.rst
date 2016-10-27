@@ -1,6 +1,6 @@
 .. _shooting:
 
-.. currentmodule:: openpathsampling.shooting
+.. currentmodule:: openpathsampling
 
 ShootingPointSelector Functions
 ===============================

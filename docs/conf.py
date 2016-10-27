@@ -16,6 +16,7 @@ import sys
 import os
 
 import openpathsampling
+import openpathsampling.netcdfplus as ncp
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -66,7 +67,7 @@ napoleon_use_rtype = True
 pandoc_from = ['markdown', 'mediawiki']
 
 autosummary_generate = True
-autodoc_default_flags = ['members', 'inherited-members', 'imported-members']
+autodoc_default_flags = ['members', 'special-members']
 
 sys.path.insert(0, os.path.abspath('sphinxext'))
 extensions.append('notebook_sphinxext')
@@ -146,7 +147,9 @@ pygments_style = 'sphinx'
 
 html_theme = "sphinx_rtd_theme"
 html_theme_path = ['_themes']
-#html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+# import sphinx_rtd_theme
+# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Activate the theme.
 #html_theme = 'bootstrap'
@@ -156,14 +159,15 @@ html_theme_path = ['_themes']
 #html_theme_path = ['_themes']
 #html_theme = 'kr'
 
-#html_theme_path = [alabaster.get_path()]
-#extensions = ['alabaster']
-#html_theme = 'alabaster'
-#html_sidebars = {
+# import alabaster
+# html_theme_path = [alabaster.get_path()]
+# extensions += ['alabaster']
+# html_theme = 'alabaster'
+# html_sidebars = {
 #    '**': [
 #        'about.html', 'navigation.html', 'searchbox.html', 'donate.html',
 #    ]
-#}
+# }
 
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -322,3 +326,20 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+
+def skip(app, what, name, obj, skip, options):
+
+    # exclude inheritance from StorableObject.
+    if not skip and name in ncp.StorableObject.__dict__.keys():
+        # print app, what, name, obj, skip, options
+        return True
+
+    if name == 'args':
+        print obj
+
+    return skip
+
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)

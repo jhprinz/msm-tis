@@ -3,64 +3,64 @@ API Functions
 #############
 
 .. toctree::
-	:maxdepth: 2
+    :maxdepth: 2
 
 ******************
 CollectiveVariable
 ******************
 	
-.. automodule:: collectivevariable
-	:members:
-	:inherited-members:
-	:show-inheritance:
+.. automodule:: openpathsampling.collectivevariable
+    :members:
+    :inherited-members:
+    :show-inheritance:
 
 
 ****************
 Dynamics Engines
 ****************
 	
-.. automodule:: engines
-	:members:
-	:inherited-members:
-	:show-inheritance:
-        :imported-members:
+.. automodule:: openpathsampling.engines
+    :members:
+    :inherited-members:
+    :show-inheritance:
+    :imported-members:
 	
 	
 ********
 Shooting
 ********
 	
-.. automodule:: shooting
-	:members:
-	:inherited-members:
-	:show-inheritance:
+.. automodule:: openpathsampling.shooting
+    :members:
+    :inherited-members:
+    :show-inheritance:
 	
 ********
 Ensemble
 ********
 
-.. automodule:: ensemble 
+.. automodule:: openpathsampling.ensemble
 	:members:
 
 ******
 Volume
 ******
 
-.. automodule:: volume
+.. automodule:: openpathsampling.volume
 	:members:
 	
 *********
 PathMover
 *********
 
-.. automodule:: pathmover
+.. automodule:: openpathsampling.pathmover
 	:members:
 	
 *******
 Storage
 *******
 
-.. automodule:: storage
+.. automodule:: openpathsampling.storage
 	:members:
 	
 ********

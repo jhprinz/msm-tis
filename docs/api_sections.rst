@@ -12,7 +12,6 @@ OpenPathSampling API
     movestrategy
     pathsimulator
     storage
-    treemixin
     network
     engines/index
     netcdfplus/index

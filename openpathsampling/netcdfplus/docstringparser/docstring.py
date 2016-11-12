@@ -40,7 +40,6 @@ class VarType(object):
         self._t = t
 
 
-
 class Documentation(object):
     def __init__(self):
         self.sections = collections.defaultdict
@@ -50,6 +49,70 @@ class Documentation(object):
 
 
 class ParserBase(UnicodeMixin):
+    """Convert Google style docstrings to reStructuredText.
+
+    Parameters
+    ----------
+    docstring : :obj:`str` or :obj:`list` of :obj:`str`
+        The docstring to parse, given either as a string or split into
+        individual lines.
+    config: :obj:`sphinx.ext.napoleon.Config` or :obj:`sphinx.config.Config`
+        The configuration settings to use. If not given, defaults to the
+        config object on `app`; or if `app` is not given defaults to the
+        a new :class:`sphinx.ext.napoleon.Config` object.
+
+
+    Other Parameters
+    ----------------
+    app : :class:`sphinx.application.Sphinx`, optional
+        Application object representing the Sphinx process.
+    what : :obj:`str`, optional
+        A string specifying the type of the object to which the docstring
+        belongs. Valid values: "module", "class", "exception", "function",
+        "method", "attribute".
+    name : :obj:`str`, optional
+        The fully qualified name of the object.
+    obj : module, class, exception, function, method, or attribute
+        The object to which the docstring belongs.
+    options : :class:`sphinx.ext.autodoc.Options`, optional
+        The options given to the directive: an object with attributes
+        inherited_members, undoc_members, show_inheritance and noindex that
+        are True if the flag option of same name was given to the auto
+        directive.
+
+
+    Example
+    -------
+    >>> from sphinx.ext.napoleon import Config
+    >>> config = Config(napoleon_use_param=True, napoleon_use_rtype=True)
+    >>> docstring = '''One line summary.
+    ...
+    ... Extended description.
+    ...
+    ... Args:
+    ...   arg1(int): Description of `arg1`
+    ...   arg2(str): Description of `arg2`
+    ... Returns:
+    ...   str: Description of return value.
+    ... '''
+    >>> print(GoogleDocstring(docstring, config))
+    One line summary.
+    <BLANKLINE>
+    Extended description.
+    <BLANKLINE>
+    :param arg1: Description of `arg1`
+    :type arg1: int
+    :param arg2: Description of `arg2`
+    :type arg2: str
+    <BLANKLINE>
+    :returns: Description of return value.
+    :rtype: str
+    <BLANKLINE>
+
+    """
+
+    _directive_sections = []
+
     def __init__(self, docstring, config=None, app=None, what='', name='',
                  obj=None, options=None):
         self._config = config
@@ -85,10 +148,9 @@ class ParserBase(UnicodeMixin):
 
         self._is_in_section = False
         self._section_indent = 0
-        if not hasattr(self, '_directive_sections'):
-            self._directive_sections = []
         if not hasattr(self, '_sections'):
             self._sections = {
+                'main': '_main_section',
                 'args': '_parameters_section',
                 'arguments': '_parameters_section',
                 'attributes': '_attributes_section',
@@ -133,7 +195,6 @@ class ParserBase(UnicodeMixin):
         """
         return u('\n').join(self.lines())
 
-
     def lines(self):
         """Return the parsed lines of the docstring in reStructuredText format.
 
@@ -144,7 +205,6 @@ class ParserBase(UnicodeMixin):
 
         """
         return self._parsed_lines
-
 
     # --------------------------------------------------------------------------
     # Static Methods for text processing
@@ -167,7 +227,6 @@ class ParserBase(UnicodeMixin):
         else:
             return [prefix]
 
-
     @staticmethod
     def _escape_args_and_kwargs(name):
         if name[:2] == '**':
@@ -177,7 +236,6 @@ class ParserBase(UnicodeMixin):
         else:
             return name
 
-
     @staticmethod
     def _get_indent(line):
         for i, s in enumerate(line):
@@ -185,11 +243,9 @@ class ParserBase(UnicodeMixin):
                 return i
         return len(line)
 
-
     @staticmethod
     def _indent(lines, n=4):
         return [(' ' * n) + line for line in lines]
-
 
     @staticmethod
     def _is_indented(line, indent=1):
@@ -199,7 +255,6 @@ class ParserBase(UnicodeMixin):
             elif not s.isspace():
                 return False
         return False
-
 
     @staticmethod
     def _partition_field_on_colon(line):
@@ -223,7 +278,6 @@ class ParserBase(UnicodeMixin):
         return ("".join(before_colon).strip(),
                 colon,
                 "".join(after_colon).strip())
-
 
     @staticmethod
     def _strip_empty(lines):
@@ -320,7 +374,6 @@ class Consumer(ParserBase):
             line = self._line_iter.peek(peek_ahead + 1)[peek_ahead]
         return 0
 
-
     def _is_section_header(self):
         section = self._line_iter.peek().lower()
         match = _google_section_regex.match(section)
@@ -335,7 +388,6 @@ class Consumer(ParserBase):
                         return True
         return False
 
-
     def _is_section_break(self):
         line = self._line_iter.peek()
         return (not self._line_iter.has_next() or
@@ -343,7 +395,6 @@ class Consumer(ParserBase):
                 (self._is_in_section and
                  line and
                  not self._is_indented(line, self._section_indent)))
-
 
     def _consume_empty(self):
         pass
@@ -406,7 +457,67 @@ class Consumer(ParserBase):
 
 
 class GoogleConsumer(Consumer):
+    """Convert Google style docstrings to reStructuredText.
 
+    Parameters
+    ----------
+    docstring : :obj:`str` or :obj:`list` of :obj:`str`
+        The docstring to parse, given either as a string or split into
+        individual lines.
+    config: :obj:`sphinx.ext.napoleon.Config` or :obj:`sphinx.config.Config`
+        The configuration settings to use. If not given, defaults to the
+        config object on `app`; or if `app` is not given defaults to the
+        a new :class:`sphinx.ext.napoleon.Config` object.
+
+
+    Other Parameters
+    ----------------
+    app : :class:`sphinx.application.Sphinx`, optional
+        Application object representing the Sphinx process.
+    what : :obj:`str`, optional
+        A string specifying the type of the object to which the docstring
+        belongs. Valid values: "module", "class", "exception", "function",
+        "method", "attribute".
+    name : :obj:`str`, optional
+        The fully qualified name of the object.
+    obj : module, class, exception, function, method, or attribute
+        The object to which the docstring belongs.
+    options : :class:`sphinx.ext.autodoc.Options`, optional
+        The options given to the directive: an object with attributes
+        inherited_members, undoc_members, show_inheritance and noindex that
+        are True if the flag option of same name was given to the auto
+        directive.
+
+
+    Example
+    -------
+    >>> from sphinx.ext.napoleon import Config
+    >>> config = Config(napoleon_use_param=True, napoleon_use_rtype=True)
+    >>> docstring = '''One line summary.
+    ...
+    ... Extended description.
+    ...
+    ... Args:
+    ...   arg1(int): Description of `arg1`
+    ...   arg2(str): Description of `arg2`
+    ... Returns:
+    ...   str: Description of return value.
+    ... '''
+    >>> print(GoogleDocstring(docstring, config))
+    One line summary.
+    <BLANKLINE>
+    Extended description.
+    <BLANKLINE>
+    :param arg1: Description of `arg1`
+    :type arg1: int
+    :param arg2: Description of `arg2`
+    :type arg2: str
+    <BLANKLINE>
+    :returns: Description of return value.
+    :rtype: str
+    <BLANKLINE>
+
+    """
     # --------------------------------------------------------------------------
     # Consumers
     # --------------------------------------------------------------------------
@@ -543,7 +654,7 @@ class GoogleConsumer(Consumer):
         return self._consume_to_next_section()
 
     def _consume_notes_section(self, section):
-        return self._consume_usage_section('Notes')
+        return self._consume_usage_section()
 
     def _consume_other_parameters_section(self, section):
         return self._consume_fields()
@@ -571,7 +682,6 @@ class GoogleConsumer(Consumer):
 
     def _consume_yields_section(self, section):
         return self._consume_returns_section()
-
 
 
 class NumpyDocstringConsumer(GoogleConsumer):
@@ -858,21 +968,17 @@ class Outputter(ParserBase):
         return desc
 
     def _section_parser(self, section):
-        parser_name = '_parse' + self._sections[section]
+        parser_name = '_parse' + self._sections[section.strip().lower()]
         if hasattr(self, parser_name):
             return getattr(self, parser_name)
         else:
-            return lambda x: x
+            return lambda x, y: y
 
 
 class RSTOutputter(Outputter):
-    # --------------------------------------------------------------------------
-    # Formatters
-    # --------------------------------------------------------------------------
 
     @classmethod
     def _format_admonition(cls, admonition, lines):
-
         lines = cls._strip_empty(lines)
         if len(lines) == 1:
             return ['.. %s:: %s' % (admonition, lines[0].strip()), '']
@@ -991,47 +1097,45 @@ class RSTOutputter(Outputter):
         self._parsed_lines.extend(lines)
 
     def _parse(self):
-        self._parsed_lines = self._consume_empty()
+        # self._parsed_lines = self._consume_empty()
+        #
+        # if self._name and (self._what == 'attribute' or self._what == 'data'):
+        #     self._parsed_lines.extend(self._parse_attribute_docstring())
+        #     return
 
-        if self._name and (self._what == 'attribute' or self._what == 'data'):
-            self._parsed_lines.extend(self._parse_attribute_docstring())
-            return
+        self._parsed_lines = []
 
-        for section, lines in self._content:
-            pass
+        for section, data in self._content:
+            outputter = self._section_parser(section)
 
-        while self._line_iter.has_next():
-            if self._is_section_header():
-                try:
-                    section = self._consume_section_header()
-                    self._is_in_section = True
-                    self._section_indent = self._get_current_indent()
-                    if _directive_regex.match(section):
-                        lines = [section] + self._consume_to_next_section()
-                    else:
-                        lines = self._section_parser(section.lower())(section)
-                finally:
-                    self._is_in_section = False
-                    self._section_indent = 0
-            else:
-                if not self._parsed_lines:
-                    lines = self._consume_contiguous() + self._consume_empty()
-                else:
-                    lines = self._consume_to_next_section()
-            self._parsed_lines.extend(lines)
+            self._parsed_lines.extend(outputter(section, data))
 
-    def _parse_attribute_docstring(self):
-        _type, _desc = self._consume_inline_attribute()
+        # while self._line_iter.has_next():
+        #     if self._is_section_header():
+        #         try:
+        #             section = self._consume_section_header()
+        #             self._is_in_section = True
+        #             self._section_indent = self._get_current_indent()
+        #             if _directive_regex.match(section):
+        #                 lines = [section] + self._consume_to_next_section()
+        #             else:
+        #                 lines = self._section_parser(section.lower())(section)
+        #         finally:
+        #             self._is_in_section = False
+        #             self._section_indent = 0
+        #     else:
+        #         if not self._parsed_lines:
+        #             lines = self._consume_contiguous() + self._consume_empty()
+        #         else:
+        #             lines = self._consume_to_next_section()
+        #     self._parsed_lines.extend(lines)
+
+    def _parse_attribute_docstring(self, _type, _desc):
         return self._format_field('', _type, _desc)
 
-    def _parse_attributes_section(self, section):
+    def _parse_attributes_section(self, section, fields):
         lines = []
-        for _name, _type, _desc in self._consume_fields():
-            self._parsed_content['attributes'].append({
-                'name': _name,
-                'type': _type,
-                'desc': _desc
-            })
+        for _name, _type, _desc in fields:
             if self._config.napoleon_use_ivar:
                 field = ':ivar %s: ' % _name
                 lines.extend(self._format_block(field, _desc))
@@ -1042,26 +1146,23 @@ class RSTOutputter(Outputter):
                 field = self._format_field('', _type, _desc)
                 lines.extend(self._indent(field, 3))
                 lines.append('')
+
         if self._config.napoleon_use_ivar:
             lines.append('')
+
         return lines
 
-    def _parse_examples_section(self, section):
+    def _parse_examples_section(self, section, lines):
         use_admonition = self._config.napoleon_use_admonition_for_examples
-        return self._parse_generic_section(section, use_admonition)
+        return self._parse_generic_section(section, lines, use_admonition)
 
-    def _parse_usage_section(self, section):
+    def _parse_usage_section(self, section, lines):
         header = ['.. rubric:: Usage:', '']
         block = ['.. code-block:: python', '']
-        lines = self._consume_usage_section()
-        self._parsed_content[section].append(lines)
         lines = self._indent(lines, 3)
         return header + block + lines + ['']
 
-    def _parse_generic_section(self, section, use_admonition):
-        lines = self._strip_empty(self._consume_to_next_section())
-        self._parsed_content['section'].append(lines)
-
+    def _parse_generic_section(self, section, lines, use_admonition):
         lines = self._dedent(lines)
         if use_admonition:
             header = '.. admonition:: %s' % section
@@ -1073,8 +1174,7 @@ class RSTOutputter(Outputter):
         else:
             return [header, '']
 
-    def _parse_keyword_arguments_section(self, section):
-        fields = self._consume_fields()
+    def _parse_keyword_arguments_section(self, section, fields):
         if self._config.napoleon_use_keyword:
             return self._format_docutils_params(
                 fields,
@@ -1083,35 +1183,32 @@ class RSTOutputter(Outputter):
         else:
             return self._format_fields('Keyword Arguments', fields)
 
-    def _parse_methods_section(self, section):
+    def _parse_methods_section(self, section, fields):
         lines = []
-        for _name, _, _desc in self._consume_fields(parse_type=False):
+        for _name, _, _desc in fields:
             lines.append('.. method:: %s' % _name)
             if _desc:
                 lines.extend([''] + self._indent(_desc, 3))
             lines.append('')
         return lines
 
-    def _parse_note_section(self, section):
-        lines = self._consume_to_next_section()
+    def _parse_note_section(self, section, lines):
         return self._format_admonition('note', lines)
 
-    def _parse_notes_section(self, section):
+    def _parse_notes_section(self, section, lines):
         use_admonition = self._config.napoleon_use_admonition_for_notes
-        return self._parse_generic_section('Notes', use_admonition)
+        return self._parse_generic_section('Notes', lines, use_admonition)
 
-    def _parse_other_parameters_section(self, section):
-        return self._format_fields('Other Parameters', self._consume_fields())
+    def _parse_other_parameters_section(self, section, fields):
+        return self._format_fields('Other Parameters', fields)
 
-    def _parse_parameters_section(self, section):
-        fields = self._consume_fields()
+    def _parse_parameters_section(self, section, fields):
         if self._config.napoleon_use_param:
             return self._format_docutils_params(fields)
         else:
             return self._format_fields('Parameters', fields)
 
-    def _parse_raises_section(self, section):
-        fields = self._consume_fields(parse_type=False, prefer_type=True)
+    def _parse_raises_section(self, section, fields):
         field_type = ':raises:'
         padding = ' ' * len(field_type)
         multi = len(fields) > 1
@@ -1148,12 +1245,11 @@ class RSTOutputter(Outputter):
             lines.append('')
         return lines
 
-    def _parse_references_section(self, section):
+    def _parse_references_section(self, section, fields):
         use_admonition = self._config.napoleon_use_admonition_for_references
-        return self._parse_generic_section('References', use_admonition)
+        return self._parse_generic_section('References', fields, use_admonition)
 
-    def _parse_returns_section(self, section):
-        fields = self._consume_returns_section()
+    def _parse_returns_section(self, section, fields):
         multi = len(fields) > 1
         if multi:
             use_rtype = False
@@ -1180,23 +1276,19 @@ class RSTOutputter(Outputter):
             lines.append('')
         return lines
 
-    def _parse_see_also_section(self, section):
-        lines = self._consume_to_next_section()
+    def _parse_see_also_section(self, section, lines):
         return self._format_admonition('seealso', lines)
 
-    def _parse_todo_section(self, section):
-        lines = self._consume_to_next_section()
+    def _parse_todo_section(self, section, lines):
         return self._format_admonition('todo', lines)
 
-    def _parse_warning_section(self, section):
-        lines = self._consume_to_next_section()
+    def _parse_warning_section(self, section, lines):
         return self._format_admonition('warning', lines)
 
-    def _parse_warns_section(self, section):
-        return self._format_fields('Warns', self._consume_fields())
+    def _parse_warns_section(self, section, fields):
+        return self._format_fields('Warns', fields)
 
-    def _parse_yields_section(self, section):
-        fields = self._consume_returns_section()
+    def _parse_yields_section(self, section, fields):
         return self._format_fields('Yields', fields)
 
 
@@ -1275,8 +1367,6 @@ class GoogleDocstring(UnicodeMixin):
             from sphinx.ext.napoleon import Config
             self._config = self._app and self._app.config or Config()
 
-        print self._config.__dict__
-
         if not what:
             if inspect.isclass(obj):
                 what = 'class'
@@ -1295,10 +1385,7 @@ class GoogleDocstring(UnicodeMixin):
             docstring = docstring.splitlines()
         self._lines = docstring
         self._line_iter = modify_iter(docstring, modifier=lambda s: s.rstrip())
-
         self._parsed_lines = []
-        self._parsed_content = collections.defaultdict(list)
-
         self._is_in_section = False
         self._section_indent = 0
         if not hasattr(self, '_directive_sections'):
@@ -1331,166 +1418,6 @@ class GoogleDocstring(UnicodeMixin):
             }
         self._parse()
 
-    # --------------------------------------------------------------------------
-    # Static Methods for text processing
-    # --------------------------------------------------------------------------
-
-    @staticmethod
-    def _format_block(prefix, lines, padding=None):
-        if lines:
-            if padding is None:
-                padding = ' ' * len(prefix)
-            result_lines = []
-            for i, line in enumerate(lines):
-                if i == 0:
-                    result_lines.append((prefix + line).rstrip())
-                elif line:
-                    result_lines.append(padding + line)
-                else:
-                    result_lines.append('')
-            return result_lines
-        else:
-            return [prefix]
-
-    @staticmethod
-    def _escape_args_and_kwargs(name):
-        if name[:2] == '**':
-            return r'\*\*' + name[2:]
-        elif name[:1] == '*':
-            return r'\*' + name[1:]
-        else:
-            return name
-
-    @staticmethod
-    def _get_indent(line):
-        for i, s in enumerate(line):
-            if not s.isspace():
-                return i
-        return len(line)
-
-    @staticmethod
-    def _indent(lines, n=4):
-        return [(' ' * n) + line for line in lines]
-
-    @staticmethod
-    def _is_indented(line, indent=1):
-        for i, s in enumerate(line):
-            if i >= indent:
-                return True
-            elif not s.isspace():
-                return False
-        return False
-
-    @staticmethod
-    def _partition_field_on_colon(line):
-        before_colon = []
-        after_colon = []
-        colon = ''
-        found_colon = False
-        for i, source in enumerate(_xref_regex.split(line)):
-            if found_colon:
-                after_colon.append(source)
-            else:
-                m = _single_colon_regex.search(source)
-                if (i % 2) == 0 and m:
-                    found_colon = True
-                    colon = source[m.start(): m.end()]
-                    before_colon.append(source[:m.start()])
-                    after_colon.append(source[m.end():])
-                else:
-                    before_colon.append(source)
-
-        return ("".join(before_colon).strip(),
-                colon,
-                "".join(after_colon).strip())
-
-    @staticmethod
-    def _strip_empty(lines):
-        if lines:
-            start = -1
-            for i, line in enumerate(lines):
-                if line:
-                    start = i
-                    break
-            if start == -1:
-                lines = []
-            end = -1
-            for i in reversed(range(len(lines))):
-                line = lines[i]
-                if line:
-                    end = i
-                    break
-            if start > 0 or end + 1 < len(lines):
-                lines = lines[start:end + 1]
-        return lines
-
-    # --------------------------------------------------------------------------
-    # Class Methods for text processing
-    # --------------------------------------------------------------------------
-
-    @classmethod
-    def _dedent(cls, lines, full=False):
-        if full:
-            return [line.lstrip() for line in lines]
-        else:
-            min_indent = cls._get_min_indent(lines)
-            return [line[min_indent:] for line in lines]
-
-    @classmethod
-    def _get_initial_indent(cls, lines):
-        for line in lines:
-            if line:
-                return cls._get_indent(line)
-        return 0
-
-    @classmethod
-    def _get_min_indent(cls, lines):
-        min_indent = None
-        for line in lines:
-            if line:
-                indent = cls._get_indent(line)
-                if min_indent is None:
-                    min_indent = indent
-                elif indent < min_indent:
-                    min_indent = indent
-        return min_indent or 0
-
-    @classmethod
-    def _is_list(cls, lines):
-        if not lines:
-            return False
-        if _bullet_list_regex.match(lines[0]):
-            return True
-        if _enumerated_list_regex.match(lines[0]):
-            return True
-        if len(lines) < 2 or lines[0].endswith('::'):
-            return False
-        indent = cls._get_indent(lines[0])
-        next_indent = indent
-        for line in lines[1:]:
-            if line:
-                next_indent = cls._get_indent(line)
-                break
-        return next_indent > indent
-
-    @classmethod
-    def _fix_field_desc(cls, desc):
-        if cls._is_list(desc):
-            desc = [''] + desc
-        elif desc[0].endswith('::'):
-            desc_block = desc[1:]
-            indent = cls._get_indent(desc[0])
-            block_indent = cls._get_initial_indent(desc_block)
-            if block_indent > indent:
-                desc = [''] + desc
-            else:
-                desc = ['', desc[0]] + cls._indent(desc_block, 4)
-        return desc
-
-    # --------------------------------------------------------------------------
-    # Instance Methods for text processing
-    # --------------------------------------------------------------------------
-
     def __unicode__(self):
         """Return the parsed docstring in reStructuredText format.
 
@@ -1512,10 +1439,6 @@ class GoogleDocstring(UnicodeMixin):
 
         """
         return self._parsed_lines
-
-    # --------------------------------------------------------------------------
-    # Consumers
-    # --------------------------------------------------------------------------
 
     def _consume_indented_block(self, indent=1):
         lines = []
@@ -1624,32 +1547,69 @@ class GoogleDocstring(UnicodeMixin):
             lines.append(next(self._line_iter))
         return lines + self._consume_empty()
 
-    # --------------------------------------------------------------------------
-    # Formatters
-    # --------------------------------------------------------------------------
+    def _dedent(self, lines, full=False):
+        if full:
+            return [line.lstrip() for line in lines]
+        else:
+            min_indent = self._get_min_indent(lines)
+            return [line[min_indent:] for line in lines]
 
-    @classmethod
-    def _format_admonition(cls, admonition, lines):
+    def _escape_args_and_kwargs(self, name):
+        if name[:2] == '**':
+            return r'\*\*' + name[2:]
+        elif name[:1] == '*':
+            return r'\*' + name[1:]
+        else:
+            return name
 
-        lines = cls._strip_empty(lines)
+    def _fix_field_desc(self, desc):
+        if self._is_list(desc):
+            desc = [''] + desc
+        elif desc[0].endswith('::'):
+            desc_block = desc[1:]
+            indent = self._get_indent(desc[0])
+            block_indent = self._get_initial_indent(desc_block)
+            if block_indent > indent:
+                desc = [''] + desc
+            else:
+                desc = ['', desc[0]] + self._indent(desc_block, 4)
+        return desc
+
+    def _format_admonition(self, admonition, lines):
+        lines = self._strip_empty(lines)
         if len(lines) == 1:
             return ['.. %s:: %s' % (admonition, lines[0].strip()), '']
         elif lines:
-            lines = cls._indent(cls._dedent(lines), 3)
+            lines = self._indent(self._dedent(lines), 3)
             return ['.. %s::' % admonition, ''] + lines + ['']
         else:
             return ['.. %s::' % admonition, '']
 
-    @classmethod
-    def _format_docutils_params(cls, fields, field_role='param',
+    def _format_block(self, prefix, lines, padding=None):
+        if lines:
+            if padding is None:
+                padding = ' ' * len(prefix)
+            result_lines = []
+            for i, line in enumerate(lines):
+                if i == 0:
+                    result_lines.append((prefix + line).rstrip())
+                elif line:
+                    result_lines.append(padding + line)
+                else:
+                    result_lines.append('')
+            return result_lines
+        else:
+            return [prefix]
+
+    def _format_docutils_params(self, fields, field_role='param',
                                 type_role='type'):
         lines = []
         for _name, _type, _desc in fields:
-            _desc = cls._strip_empty(_desc)
+            _desc = self._strip_empty(_desc)
             if any(_desc):
-                _desc = cls._fix_field_desc(_desc)
+                _desc = self._fix_field_desc(_desc)
                 field = ':%s %s: ' % (field_role, _name)
-                lines.extend(cls._format_block(field, _desc))
+                lines.extend(self._format_block(field, _desc))
             else:
                 lines.append(':%s %s:' % (field_role, _name))
 
@@ -1657,9 +1617,8 @@ class GoogleDocstring(UnicodeMixin):
                 lines.append(':%s %s: %s' % (type_role, _name, _type))
         return lines + ['']
 
-    @classmethod
-    def _format_field(cls, _name, _type, _desc):
-        _desc = cls._strip_empty(_desc)
+    def _format_field(self, _name, _type, _desc):
+        _desc = self._strip_empty(_desc)
         has_desc = any(_desc)
         separator = has_desc and ' -- ' or ''
         if _name:
@@ -1679,7 +1638,7 @@ class GoogleDocstring(UnicodeMixin):
             field = ''
 
         if has_desc:
-            _desc = cls._fix_field_desc(_desc)
+            _desc = self._fix_field_desc(_desc)
             if _desc[0]:
                 return [field + _desc[0]] + _desc[1:]
             else:
@@ -1687,28 +1646,23 @@ class GoogleDocstring(UnicodeMixin):
         else:
             return [field]
 
-    @classmethod
-    def _format_fields(cls, field_type, fields):
+    def _format_fields(self, field_type, fields):
         field_type = ':%s:' % field_type.strip()
         padding = ' ' * len(field_type)
         multi = len(fields) > 1
         lines = []
         for _name, _type, _desc in fields:
-            field = cls._format_field(_name, _type, _desc)
+            field = self._format_field(_name, _type, _desc)
             if multi:
                 if lines:
-                    lines.extend(cls._format_block(padding + ' * ', field))
+                    lines.extend(self._format_block(padding + ' * ', field))
                 else:
-                    lines.extend(cls._format_block(field_type + ' * ', field))
+                    lines.extend(self._format_block(field_type + ' * ', field))
             else:
-                lines.extend(cls._format_block(field_type + ' ', field))
+                lines.extend(self._format_block(field_type + ' ', field))
         if lines and lines[-1]:
             lines.append('')
         return lines
-
-    # --------------------------------------------------------------------------
-    # State checking
-    # --------------------------------------------------------------------------
 
     def _get_current_indent(self, peek_ahead=0):
         line = self._line_iter.peek(peek_ahead + 1)[peek_ahead]
@@ -1718,6 +1672,57 @@ class GoogleDocstring(UnicodeMixin):
             peek_ahead += 1
             line = self._line_iter.peek(peek_ahead + 1)[peek_ahead]
         return 0
+
+    def _get_indent(self, line):
+        for i, s in enumerate(line):
+            if not s.isspace():
+                return i
+        return len(line)
+
+    def _get_initial_indent(self, lines):
+        for line in lines:
+            if line:
+                return self._get_indent(line)
+        return 0
+
+    def _get_min_indent(self, lines):
+        min_indent = None
+        for line in lines:
+            if line:
+                indent = self._get_indent(line)
+                if min_indent is None:
+                    min_indent = indent
+                elif indent < min_indent:
+                    min_indent = indent
+        return min_indent or 0
+
+    def _indent(self, lines, n=4):
+        return [(' ' * n) + line for line in lines]
+
+    def _is_indented(self, line, indent=1):
+        for i, s in enumerate(line):
+            if i >= indent:
+                return True
+            elif not s.isspace():
+                return False
+        return False
+
+    def _is_list(self, lines):
+        if not lines:
+            return False
+        if _bullet_list_regex.match(lines[0]):
+            return True
+        if _enumerated_list_regex.match(lines[0]):
+            return True
+        if len(lines) < 2 or lines[0].endswith('::'):
+            return False
+        indent = self._get_indent(lines[0])
+        next_indent = indent
+        for line in lines[1:]:
+            if line:
+                next_indent = self._get_indent(line)
+                break
+        return next_indent > indent
 
     def _is_section_header(self):
         section = self._line_iter.peek().lower()
@@ -1740,10 +1745,6 @@ class GoogleDocstring(UnicodeMixin):
                 (self._is_in_section and
                     line and
                     not self._is_indented(line, self._section_indent)))
-
-    # --------------------------------------------------------------------------
-    # Main parser
-    # --------------------------------------------------------------------------
 
     def _parse(self):
         self._parsed_lines = self._consume_empty()
@@ -1779,11 +1780,6 @@ class GoogleDocstring(UnicodeMixin):
     def _parse_attributes_section(self, section):
         lines = []
         for _name, _type, _desc in self._consume_fields():
-            self._parsed_content['attributes'].append({
-                'name': _name,
-                'type': _type,
-                'desc': _desc
-            })
             if self._config.napoleon_use_ivar:
                 field = ':ivar %s: ' % _name
                 lines.extend(self._format_block(field, _desc))
@@ -1806,14 +1802,11 @@ class GoogleDocstring(UnicodeMixin):
         header = ['.. rubric:: Usage:', '']
         block = ['.. code-block:: python', '']
         lines = self._consume_usage_section()
-        self._parsed_content[section].append(lines)
         lines = self._indent(lines, 3)
         return header + block + lines + ['']
 
     def _parse_generic_section(self, section, use_admonition):
         lines = self._strip_empty(self._consume_to_next_section())
-        self._parsed_content['section'].append(lines)
-
         lines = self._dedent(lines)
         if use_admonition:
             header = '.. admonition:: %s' % section
@@ -1950,6 +1943,47 @@ class GoogleDocstring(UnicodeMixin):
     def _parse_yields_section(self, section):
         fields = self._consume_returns_section()
         return self._format_fields('Yields', fields)
+
+    def _partition_field_on_colon(self, line):
+        before_colon = []
+        after_colon = []
+        colon = ''
+        found_colon = False
+        for i, source in enumerate(_xref_regex.split(line)):
+            if found_colon:
+                after_colon.append(source)
+            else:
+                m = _single_colon_regex.search(source)
+                if (i % 2) == 0 and m:
+                    found_colon = True
+                    colon = source[m.start(): m.end()]
+                    before_colon.append(source[:m.start()])
+                    after_colon.append(source[m.end():])
+                else:
+                    before_colon.append(source)
+
+        return ("".join(before_colon).strip(),
+                colon,
+                "".join(after_colon).strip())
+
+    def _strip_empty(self, lines):
+        if lines:
+            start = -1
+            for i, line in enumerate(lines):
+                if line:
+                    start = i
+                    break
+            if start == -1:
+                lines = []
+            end = -1
+            for i in reversed(range(len(lines))):
+                line = lines[i]
+                if line:
+                    end = i
+                    break
+            if start > 0 or end + 1 < len(lines):
+                lines = lines[start:end + 1]
+        return lines
 
 
 class NumpyDocstring(GoogleDocstring):
@@ -2101,14 +2135,14 @@ class NumpyDocstring(GoogleDocstring):
     _name_rgx = re.compile(r"^\s*(:(?P<role>\w+):`(?P<name>[a-zA-Z0-9_.-]+)`|"
                            r" (?P<name2>[a-zA-Z0-9_.-]+))\s*", re.X)
 
-    def _consume_see_also_section(self, section):
+    def _parse_see_also_section(self, section):
         lines = self._consume_to_next_section()
         try:
-            return self._consume_numpydoc_see_also_section(lines)
+            return self._parse_numpydoc_see_also_section(lines)
         except ValueError:
-            return lines
+            return self._format_admonition('seealso', lines)
 
-    def _consume_numpydoc_see_also_section(self, content):
+    def _parse_numpydoc_see_also_section(self, content):
         """
         Derived from the NumpyDoc implementation of _parse_see_also.
 
@@ -2212,8 +2246,5 @@ class NumpyDocstring(GoogleDocstring):
             else:
                 last_had_desc = False
         lines += ['']
-
-        return lines
-
 
         return self._format_admonition('seealso', lines)

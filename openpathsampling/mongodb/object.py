@@ -2,10 +2,10 @@ import logging
 from uuid import UUID
 from weakref import WeakValueDictionary
 
-from openpathsampling.netcdfplus.base import StorableNamedObject, StorableObject
-from openpathsampling.netcdfplus.cache import MaxCache, Cache, NoCache, \
+from openpathsampling.mongodb.base import StorableNamedObject, StorableObject
+from openpathsampling.mongodb.cache import MaxCache, Cache, NoCache, \
     WeakLRUCache
-from openpathsampling.netcdfplus.proxy import LoaderProxy
+from openpathsampling.mongodb.proxy import LoaderProxy
 
 logger = logging.getLogger(__name__)
 init_log = logging.getLogger('openpathsampling.initialization')
@@ -237,8 +237,7 @@ class ObjectStore(StorableNamedObject):
             self.prefix,
             self.content_class.__name__ if self.content_class is not None else
             'None/ANY',
-            str(len(self)) + ' object(s)' if self._created else
-            '(not created)'
+            str(len(self)) + ' object(s)'
         )
 
     @property
@@ -312,7 +311,7 @@ class ObjectStore(StorableNamedObject):
             number of stored objects
 
         """
-        return len(self._document.count())
+        return self._document.count()
 
     # def write(self, variable, idx, obj, attribute=None):
     #     if attribute is None:
@@ -400,7 +399,8 @@ class ObjectStore(StorableNamedObject):
             return None
 
     def _load(self, idx):
-        obj = self.storage.simplifier.from_json(self._document.find_one({'_id': idx}))
+        obj = self.storage.simplifier.from_simple_dict(
+            self._document.find_one({'_id': str(UUID(int=idx))}))
         return obj
 
     def clear_cache(self):
@@ -422,7 +422,8 @@ class ObjectStore(StorableNamedObject):
             self._cached_all = True
 
     def _save(self, obj, idx):
-        self._document.insert(self.storage.simplifier.to_json(obj))
+        dct = self.storage.simplifier.to_simple_dict(obj)
+        self._document.insert(dct)
 
     @property
     def last(self):
@@ -459,196 +460,17 @@ class ObjectStore(StorableNamedObject):
             Used to store a new object.
         """
 
-        # start at first free position in the storage
         idx = len(self)
 
-        # # and skip also reserved potential stored ones
-        # while idx in self._free:
-        #     idx += 1
-
         return idx
-
-    # def reserve_idx(self, idx):
-    #     """
-    #     Locks an idx as used
-    #
-    #     Parameters
-    #     ----------
-    #     idx : int
-    #         the integer index to be reserved
-    #     """
-    #     self._free.add(idx)
-    #
-    # def release_idx(self, idx):
-    #     """
-    #     Releases a lock on an idx
-    #
-    #     Parameters
-    #     ----------
-    #     idx : int
-    #         the integer index to be released
-    #     """
-    #     self._free.discard(idx)
 
     def initialize(self):
         """
         Initialize the associated storage to allow for object storage. Mainly
         creates an index dimension with the name of the object.
         """
-        # define dimensions used for the specific object
-
-        # self.storage.create_dimension(self.prefix, 0)
-
-        # self.create_variable(
-        #     "json",
-        #     'jsonobj',
-        #     description='A json serialized version of the object',
-        #     chunksizes=tuple([65536])
-        # )
-        #
-        # # TODO: Change to 16byte string
-        # self.create_variable(
-        #     "uuid", 'uuid',
-        #     description='The uuid of the object',
-        #     chunksizes=tuple([65536])
-        # )
 
         self._created = True
-
-    # ==========================================================================
-    # INITIALISATION UTILITY FUNCTIONS
-    # ==========================================================================
-
-    # def create_variable(
-    #         self,
-    #         var_name,
-    #         var_type,
-    #         dimensions=None,
-    #         chunksizes=None,
-    #         description=None,
-    #         simtk_unit=None,
-    #         maskable=False
-    # ):
-    #     """
-    #     Create a new variable in the netCDF storage. This is just a helper
-    #     function to structure the code better.
-    #
-    #     Parameters
-    #     ==========
-    #     var_name : str
-    #         The var_name of the variable to be created
-    #     var_type : str
-    #         The string representing the type of the data stored in the
-    #         variable.  Allowed are strings of native python types in which
-    #         case the variables will be treated as python or a string of the
-    #         form 'numpy.type' which will refer to the numpy data types.
-    #         Numpy is preferred sinec the api to netCDF uses numpy and thus
-    #         it is faster. Possible input strings are
-    #         `int`, `float`, `long`, `str`, `numpy.float32`, `numpy.float64`,
-    #         `numpy.int8`, `numpy.int16`, `numpy.int32`, `numpy.int64`, `json`,
-    #         `obj.<store>`, `lazyobj.<store>`
-    #     dimensions : str or tuple of str
-    #         A tuple representing the dimensions used for the netcdf variable.
-    #         If not specified then the default dimension of the storage is used.
-    #         If the last dimension is `'...'` then it is assumed that the
-    #         objects are of variable length. In netCDF this is usually
-    #         referred to as a VLType.  We will treat is just as another
-    #         dimension, but it can only be the last dimension.
-    #     description : str
-    #         A string describing the variable in a readable form.
-    #     chunksizes : tuple of int
-    #         A tuple of ints per number of dimensions. This specifies in what
-    #         block sizes a variable is stored. Usually for object related stuff
-    #         we want to store everything of one object at once so this is often
-    #         (1, ..., ...)
-    #     simtk_unit : str
-    #         A string representing the units used for this variable. Can be
-    #         used with all var_types although it makes sense only for numeric
-    #         ones.
-    #     maskable : bool, default: False
-    #         If set to `True` the values in this variable can only partially
-    #         exist and if they have not yet been written they are filled with
-    #         a fill_value which is treated as a non-set variable. The created
-    #         variable will interpret this values as `None` when returned
-    #     """
-    #
-    #     # add the main dimension to the var_type
-    #
-    #     if type(dimensions) is str:
-    #         dimensions = [dimensions]
-    #
-    #     if type(dimensions) is int:
-    #         if dimensions == 1:
-    #             dimensions = ['scalar']
-    #         else:
-    #             dimensions = [dimensions]
-    #
-    #     if dimensions is None:
-    #         dimensions = (self.prefix,)
-    #     else:
-    #         dimensions = tuple([self.prefix] + list(dimensions))
-    #
-    #     store_chunk_size = ObjectStore.default_store_chunk_size
-    #
-    #     if chunksizes is None and len(dimensions) == 1:
-    #         chunksizes = (store_chunk_size, )
-    #     elif chunksizes is not None and dimensions[-1] == '...' \
-    #             and len(dimensions) == len(chunksizes) + 2:
-    #         chunksizes = tuple([store_chunk_size] + list(chunksizes))
-    #     elif chunksizes is not None and dimensions[-1] != '...' \
-    #             and len(dimensions) == len(chunksizes) + 1:
-    #         chunksizes = tuple([store_chunk_size] + list(chunksizes))
-    #
-    #     if self.dimension_prefix:
-    #         dimensions = tuple(
-    #             [dimensions[0]] +
-    #             [
-    #                 self.dimension_prefix + dim if type(dim) is str and
-    #                 dim != '...' else dim for dim in dimensions[1:]
-    #             ]
-    #         )
-    #         chunksizes = tuple(
-    #             [chunksizes[0]] +
-    #             [
-    #                 self.dimension_prefix + chs
-    #                 if type(chs) is str else chs for chs in chunksizes[1:]
-    #             ]
-    #         )
-    #
-    #     self.storage.create_variable(
-    #         self.prefix + '_' + var_name,
-    #         var_type=var_type,
-    #         dimensions=dimensions,
-    #         chunksizes=chunksizes,
-    #         description=description,
-    #         simtk_unit=simtk_unit,
-    #         maskable=maskable
-    #     )
-
-    # @property
-    # def dimension_prefix(self):
-    #     if self._dimension_prefix_store is not None:
-    #         return self._dimension_prefix_store.prefix
-    #     else:
-    #         return ''
-    #
-    # def set_dimension_prefix_store(self, prefix_store=None):
-    #     """
-    #     Select which store or none should be used to prefix dimension names
-    #
-    #     If you want to create multiple instances of a store and these should
-    #     have differently long dimensions you need unique names for these. This
-    #     way you can select a store and the dimensions will be prefixed with
-    #     the stores prefix
-    #
-    #     Parameters
-    #     ----------
-    #     prefix_store : :obj:`openpathsampling.netcdf.ObjectStore`
-    #         the store from which to use its prefix / name to prefix
-    #         dimension names
-    #
-    #     """
-    #     self._dimension_prefix_store = prefix_store
 
     # ==========================================================================
     # LOAD/SAVE DECORATORS FOR CACHE HANDLING
@@ -718,15 +540,13 @@ class ObjectStore(StorableNamedObject):
                 'Loading of negative int should result in no object. '
                 'This should never happen!')
         else:
-            obj = self._load(n_idx)
+            obj = self._load(idx)
 
         logger.debug(
             'Calling load object of type %s and IDX # %d ... DONE' %
             (self.content_class.__name__, n_idx))
 
         if obj is not None:
-            # self._get_id(n_idx, obj)
-
             # update cache there might have been a change due to naming
             self.cache[n_idx] = obj
 
@@ -829,29 +649,21 @@ class ObjectStore(StorableNamedObject):
                 % (self.content_class, obj.__class__.__name__)
             )
 
-        # n_idx = self.free()
         n_idx = len(self.index)
 
         # mark as saved so circular dependencies will not cause infinite loops
         self.index.append(uuid)
 
-        # make sure in nested saving that an IDX is not used twice!
-        # self.reserve_idx(n_idx)
-
         logger.debug('Saving ' + str(type(obj)) + ' using IDX #' + str(n_idx))
 
         try:
             self._save(obj, n_idx)
-            # self._auto_complete(obj, n_idx)
             self.cache[n_idx] = obj
 
         except:
             # in case we did not succeed remove the mark as being saved
             del self.index[uuid]
             raise
-
-        # self.release_idx(n_idx)
-        # self._set_id(n_idx, obj)
 
         return self.reference(obj)
 
@@ -861,12 +673,6 @@ class ObjectStore(StorableNamedObject):
 
         """
         self.save(value, key)
-
-    # def load_single(self, idx):
-    #     return self._load(idx)
-    #
-    # def load_range(self, start, end):
-    #     return map(self._load, range(start, end))
 
     def add_single_to_cache(self, idx, json):
         """
@@ -889,276 +695,3 @@ class ObjectStore(StorableNamedObject):
             self.index[obj.__uuid__] = idx
 
             return obj
-
-    # def uuid(self, uuid):
-    #     """
-    #     Return last object with a given uuid
-    #
-    #     Parameters
-    #     ----------
-    #     uuid : str
-    #         the uuid to be searched for
-    #
-    #     Returns
-    #     -------
-    #     :py:class:`openpathsampling.netcdfplus.base.StorableObject`
-    #         the last object with a given uuid. This is to mimic an immutable
-    #         object. Once you (re-)save with the same uuid you replace the old
-    #         one and hence you leed to load the last stored one.
-    #
-    #     """
-    #     return self.load(uuid)
-
-    # def _set_id(self, idx, obj):
-    #     self.vars['uuid'][idx] = obj.__uuid__
-    #
-    # def _get_id(self, idx, obj):
-    #     obj.__uuid__ = self.index.index(int(idx))
-
-    # CV SUPPORT
-
-    # def _auto_complete(self, obj, pos):
-    #     for attribute, attribute_store in self.attribute_list.items():
-    #         if not attribute_store.allow_incomplete:
-    #             # value = attribute._cache_dict._get(obj)
-    #             # if value is None:
-    #             #     # not in cache so compute it if possible
-    #             #     if attribute._eval_dict:
-    #             #         value = attribute._eval_dict([obj])[0]
-    #
-    #             value = attribute(obj)
-    #
-    #             if value is not None:
-    #                 if attribute_store.allow_incomplete:
-    #                     attribute_store[obj] = value
-    #                 else:
-    #                     n_idx = pos
-    #                     attribute_store.vars['value'][n_idx] = value
-    #                     attribute_store.cache[n_idx] = value
-
-    # def complete_attribute(self, attribute):
-    #     """
-    #     Compute all missing values of a CV and store them
-    #
-    #
-    #     Parameters
-    #     ----------
-    #     attribute : :obj:`openpathsampling.netcdfplus.Attribute`
-    #
-    #
-    #     """
-    #     if attribute not in self.attribute_list:
-    #         return
-    #
-    #     attribute_store = self.attribute_list[attribute]
-    #     key_store = self.storage.attributes.key_store(attribute)
-    #
-    #     if attribute_store.allow_incomplete:
-    #         # for complete this does not make sense
-    #
-    #         # TODO: Make better looping over this to not have
-    #         # to load all the indices at once
-    #         # can be problematic for 10M+ stored attributes
-    #         indices = self.vars['uuid'][:]
-    #
-    #         for pos, idx in enumerate(indices):
-    #             if pos not in attribute_store.index:
-    #                 # this value is not stored to go ahead
-    #
-    #                 proxy = LoaderProxy(key_store, idx)
-    #
-    #                 # # get from cache first, this is fastest
-    #                 # value = attribute._cache_dict._get(proxy)
-    #                 #
-    #                 # if value is None:
-    #                 #     # not in cache so compute it if possible
-    #                 #     if attribute._eval_dict:
-    #                 #         value = attribute._eval_dict([proxy])[0]
-    #                 #     else:
-    #                 #         value = None
-    #
-    #                 value = attribute(proxy)
-    #
-    #                 if value is not None:
-    #                     n_idx = attribute_store.free()
-    #
-    #                     attribute_store.vars['value'][n_idx] = value
-    #                     attribute_store.vars['index'][n_idx] = pos
-    #                     attribute_store.index[pos] = n_idx
-    #                     attribute_store.cache[n_idx] = value
-
-    # def sync_attribute(self, attribute):
-    #     """
-    #     Store all cached values of a CV in the diskcache
-    #
-    #     Parameters
-    #     ----------
-    #     attribute : :obj:`openpathsampling.CollectiveVariable`
-    #
-    #
-    #     """
-    #
-    #     if attribute not in self.attribute_list:
-    #         return
-    #
-    #     attribute_store = self.attribute_list[attribute]
-    #
-    #     # for complete this does not make sense
-    #     if attribute_store.allow_incomplete:
-    #
-    #         # loop all objects in the fast CV cache
-    #         for obj, value in attribute._cache_dict.cache.iteritems():
-    #             if value is not None:
-    #                 pos = self.pos(obj)
-    #
-    #                 # if the attribute is not saved, nothing we can do
-    #                 if pos is None:
-    #                     continue
-    #
-    #                 if pos in attribute_store.index:
-    #                     # this value is stored so skip it
-    #                     continue
-    #
-    #                 n_idx = attribute_store.free()
-    #
-    #                 attribute_store.vars['value'][n_idx] = value
-    #                 attribute_store.vars['index'][n_idx] = pos
-    #                 attribute_store.index[pos] = n_idx
-    #                 attribute_store.cache[n_idx] = value
-
-    # @staticmethod
-    # def _get_attribute_name(attribute_idx):
-    #     return 'attribute' + str(attribute_idx)
-
-    # def pos(self, obj):
-    #     return self.index.get(obj.__uuid__)
-    #
-    # def add_attribute(
-    #         self, store_cls, attribute, template,
-    #         allow_incomplete=None, chunksize=None):
-    #     """
-    #
-    #     Parameters
-    #     ----------
-    #     store_cls : :obj:`openpathsampling.netcdfplus.ValueStore`
-    #     attribute : :obj:`openpathsampling.CollectiveVariable`
-    #     template : :obj:`openpathsampling.engines.Baseattribute`
-    #     chunksize : int
-    #     allow_incomplete : bool
-    #
-    #     Returns
-    #     -------
-    #     :obj:`openpathsampling.netcdfplus.ObjectStore`
-    #     int
-    #     """
-    #     if attribute in self.attribute_list:
-    #         return self.attribute_list[attribute]
-    #
-    #     key_store = self.storage.attributes.key_store(attribute)
-    #
-    #     if allow_incomplete is None:
-    #         allow_incomplete = attribute.diskcache_allow_incomplete
-    #     if chunksize is None:
-    #         chunksize = attribute.diskcache_chunksize
-    #     if template is None:
-    #         template = attribute.diskcache_template
-    #
-    #     if not allow_incomplete:
-    #         # in complete mode we force chunk size one to match it to
-    #         # attributes
-    #         chunksize = self.default_store_chunk_size
-    #
-    #     # determine value type and shape
-    #     params = self.storage.get_value_parameters(attribute(template))
-    #     shape = params['dimensions']
-    #
-    #     if shape is None:
-    #         chunksizes = None
-    #     else:
-    #         chunksizes = tuple(params['dimensions'])
-    #
-    #     # attribute_idx = self.storage.attributes.index[attribute.__uuid__]
-    #     value_store = store_cls(
-    #         attribute.key_class,
-    #         allow_incomplete=allow_incomplete,
-    #         chunksize=chunksize
-    #     )
-    #
-    #     store_name = self.name + '_' + attribute.name
-    #
-    #     self.storage.create_store(store_name, value_store, False)
-    #
-    #     if value_store.allow_incomplete:
-    #         # we are not using the .initialize function here since we
-    #         # only have one variable and only here know its shape
-    #         self.storage.create_dimension(value_store.prefix, 0)
-    #
-    #         if shape is not None:
-    #             shape = tuple(list(shape))
-    #             chunksizes = tuple([chunksize] + list(chunksizes))
-    #         else:
-    #             shape = tuple()
-    #             chunksizes = tuple([chunksize])
-    #
-    #         # create the variable
-    #         value_store.create_variable(
-    #             'value',
-    #             var_type=params['var_type'],
-    #             dimensions=shape,
-    #             chunksizes=chunksizes,
-    #             simtk_unit=params['simtk_unit'],
-    #         )
-    #
-    #         value_store.create_variable('index', 'index')
-    #
-    #     else:
-    #         chunksize = self.default_store_chunk_size
-    #         if shape is not None:
-    #             shape = tuple([self.name] + list(shape))
-    #             chunksizes = tuple([chunksize] + list(chunksizes))
-    #         else:
-    #             shape = tuple([self.name])
-    #             chunksizes = tuple([chunksize])
-    #
-    #         # create the variable
-    #         value_store.storage.create_variable(
-    #             store_name + '_value',
-    #             var_type=params['var_type'],
-    #             dimensions=shape,
-    #             chunksizes=chunksizes,
-    #             simtk_unit=params['simtk_unit'],
-    #         )
-    #
-    #     value_store.initialize()
-    #
-    #     # the value
-    #     self.attribute_list[attribute] = value_store
-    #     attribute_idx = self.storage.attributes.index[attribute.__uuid__]
-    #     self.storage.attributes.vars['cache'][attribute_idx] = value_store
-    #
-    #     # use the cache and function of the CV to fill the store when it is made
-    #     if not allow_incomplete:
-    #
-    #         indices = self.vars['uuid'][:]
-    #
-    #         for pos, idx in enumerate(indices):
-    #
-    #             proxy = LoaderProxy(key_store, idx)
-    #
-    #             # value = attribute._cache_dict._get(proxy)
-    #             #
-    #             # if value is None:
-    #             #     # not in cache so compute it if possible
-    #             #     if attribute._eval_dict:
-    #             #         value = attribute._eval_dict([proxy])[0]
-    #             #     else:
-    #             #         value = None
-    #
-    #             value = attribute(proxy)
-    #
-    #             if value is not None:
-    #                 value_store.vars['value'][pos] = value
-    #                 value_store.cache[pos] = value
-    #
-    #     attribute.set_cache_store(value_store)
-    #     return value_store

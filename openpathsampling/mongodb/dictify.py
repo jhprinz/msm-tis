@@ -18,8 +18,6 @@ from base import StorableObject
 
 from openpathsampling.tools import word_wrap
 
-from cache import WeakValueCache
-
 __author__ = 'Jan-Hendrik Prinz'
 
 
@@ -508,47 +506,17 @@ class ObjectJSON(object):
     def unit_from_json(self, json_string):
         return self.unit_from_dict(self.from_json(json_string))
 
+    def from_simple_dict(self, simplified):
+        obj = self.build(simplified)
+        obj.__uuid__ = int(UUID(simplified.get('_id')))
+        return obj
 
-class StorableObjectJSON(ObjectJSON):
-    def __init__(self, storage, unit_system=None):
-        super(StorableObjectJSON, self).__init__(unit_system)
-        self.excluded_keys = ['idx', 'json', 'identifier']
-        self.storage = storage
-
-    def simplify(self, obj, base_type=''):
-        if obj is self.storage:
-            return {'_storage': 'self'}
-        if obj.__class__.__module__ != '__builtin__':
-            if obj.__class__ in self.storage._obj_store:
-                store = self.storage._obj_store[obj.__class__]
-                if not store.nestable or obj.base_cls_name != base_type:
-                    # this also returns the base class name used for storage
-                    # store objects only if they are not creatable. If so they
-                    # will only be created in their top instance and we use
-                    # the simplify from the super class ObjectJSON
-                    idx = store.save(obj)
-                    if idx is None:
-                        raise RuntimeError(
-                            'cannot store idx None in store %s' % store)
-                    return {
-                        '_idx': idx,
-                        '_store': store.prefix}
-
-        return super(StorableObjectJSON, self).simplify(obj, base_type)
-
-    def build(self, obj):
-        if type(obj) is dict:
-            if '_storage' in obj:
-                if obj['_storage'] == 'self':
-                    return self.storage
-
-            if '_idx' in obj and '_store' in obj:
-                store = self.storage._stores[obj['_store']]
-                result = store.load(obj['_idx'])
-
-                return result
-
-        return super(StorableObjectJSON, self).build(obj)
+    def to_simple_dict(self, obj, base_type=''):
+        return {
+            '_cls': obj.__class__.__name__,
+            '_obj_uuid': str(UUID(int=obj.__uuid__)),
+            '_dict': self.simplify(obj.to_dict(), base_type),
+            '_id': str(UUID(int=obj.__uuid__))}
 
 
 class UUIDObjectJSON(ObjectJSON):
@@ -564,18 +532,10 @@ class UUIDObjectJSON(ObjectJSON):
         if obj.__class__.__module__ != '__builtin__':
             if obj.__class__ in self.storage._obj_store:
                 store = self.storage._obj_store[obj.__class__]
-                if not store.nestable or obj.base_cls_name != base_type:
-                    # this also returns the base class name used for storage
-                    # store objects only if they are not creatable. If so
-                    # they will only be created in their top instance and we
-                    # use the simplify from the super class ObjectJSON
-                    store.save(obj)
-                    return {
-                        '_hex_uuid': hex(obj.__uuid__),
-                        '_store': store.prefix}
-                    # return {
-                    #     '_obj_uuid': str(UUID(int=obj.__uuid__)),
-                    #     '_store': store.prefix}
+                store.save(obj)
+                return {
+                    '_hex_uuid': hex(obj.__uuid__),
+                    '_store': store.prefix}
 
         return super(UUIDObjectJSON, self).simplify(obj, base_type)
 
@@ -598,71 +558,3 @@ class UUIDObjectJSON(ObjectJSON):
                 return result
 
         return super(UUIDObjectJSON, self).build(obj)
-
-
-class CachedUUIDObjectJSON(ObjectJSON):
-    def __init__(self, unit_system=None):
-        super(CachedUUIDObjectJSON, self).__init__(unit_system)
-        self.excluded_keys = ['json']
-        self.uuid_cache = WeakValueCache()
-
-    def simplify(self, obj, base_type=''):
-        if obj.__class__.__module__ != '__builtin__':
-            if hasattr(obj, 'to_dict') and hasattr(obj, '__uuid__'):
-                # the object knows how to dismantle itself into a json string
-                if obj.__uuid__ not in self.uuid_cache:
-                    self.uuid_cache[obj.__uuid__] = obj
-
-                    return {
-                        '_cls': obj.__class__.__name__,
-                        '_obj_uuid': str(UUID(int=obj.__uuid__)),
-                        '_dict': self.simplify(obj.to_dict(), base_type)}
-                else:
-                    return {
-                        '_obj_uuid': str(UUID(int=obj.__uuid__))}
-
-        return super(CachedUUIDObjectJSON, self).simplify(obj, base_type)
-
-    def build(self, jsn):
-        if type(jsn) is dict:
-            if '_obj_uuid' in jsn:
-                uuid = UUID(jsn['_obj_uuid'])
-                if uuid in self.uuid_cache:
-                    return self.uuid_cache[uuid]
-                elif '_cls' in jsn and '_dict' in jsn:
-                    if jsn['_cls'] not in self.class_list:
-                        self.update_class_list()
-                        if jsn['_cls'] not in self.class_list:
-                            raise ValueError((
-                                 'Cannot create jsn of class `%s`.\n' +
-                                 'Class is not registered as creatable! '
-                                 'You might have to define\n' +
-                                 'the class locally and call '
-                                 '`update_storable_classes()` on your storage.'
-                            ) % jsn['_cls'])
-
-                    attributes = self.build(jsn['_dict'])
-
-                    obj = self.class_list[jsn['_cls']].from_dict(attributes)
-                    obj.__uuid__ = uuid
-                    self.uuid_cache[uuid] = obj
-                    return obj
-                else:
-                    # this should not happen!
-                    raise ('What happend here. JSN `%s`' % jsn)
-                    pass
-
-        return super(CachedUUIDObjectJSON, self).build(jsn)
-
-    def to_json(self, obj, base_type=''):
-        # we need to clear the cache, since we have no idea, what the other end
-        # still knows. We can only cache stuff we are sending this time
-        self.uuid_cache.clear()
-        return super(CachedUUIDObjectJSON, self).to_json(obj, base_type)
-
-    # def from_json(self, json_string):
-    #     # here we keep the cache. It could happen that an object is sent in
-    #     # full, but we still have it and so we do not have to rebuild it which
-    #     # saves some time
-    #     simplified = ujson.loads(json_string)
-    #     return self.build(simplified)

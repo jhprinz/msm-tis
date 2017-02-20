@@ -44,6 +44,12 @@ class StorableObject(object):
     def __init__(self):
         self.__uuid__ = StorableObject.get_uuid()
 
+    def __eq__(self, other):
+        if isinstance(other, StorableObject):
+            return self.__uuid__ == other.__uuid__
+
+        raise NotImplemented
+
     @staticmethod
     def set_observer(active):
         """

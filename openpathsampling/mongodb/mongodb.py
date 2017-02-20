@@ -114,7 +114,7 @@ class MongoDBStorage(object):
         self.mode = mode
 
         self._client = MongoClient('mongodb://localhost:27017/')
-        self.db = self._client['storage-' + filename]
+        self._db_name = 'storage-' + filename
 
         self.filename = filename
         self.fallback = fallback
@@ -138,12 +138,13 @@ class MongoDBStorage(object):
             #
             # self.write_meta()
 
+            self._client.drop_database(self._db_name)
+            self.db = self._client[self._db_name]
             self._create_simplifier()
 
             # create the store that holds stores
-            store_stores = ObjectStore(ObjectStore)
-            store_stores.name = 'stores'
-            self.register_store('stores', store_stores)
+            store_stores = ObjectStore('stores', ObjectStore)
+            self.register_store(store_stores)
             self.stores.initialize()
             self.stores.set_caching(True)
 
@@ -163,12 +164,13 @@ class MongoDBStorage(object):
         elif mode == 'a' or mode == 'r+' or mode == 'r':
             logger.debug("Restore the dict of units from the storage")
 
-            # self.check_version()
+            self.db = self._client[self._db_name]
 
+            # self.check_version()
             self._create_simplifier()
 
             # open the store that contains all stores
-            self.register_store('stores', ObjectStore(ObjectStore))
+            self.register_store(ObjectStore('stores', ObjectStore))
             self.stores.set_caching(True)
 
             self.stores.restore()
@@ -177,10 +179,9 @@ class MongoDBStorage(object):
 
             for store in self.stores:
                 logger.debug("Register store %s in the storage" % store.name)
-                self.register_store(store.name, store)
-                store.register(self, store.name)
+                self.register_store(store)
+                store.register(self)
 
-            self.update_delegates()
             self._restore_storages()
 
             # only if we have a new style file
@@ -266,7 +267,7 @@ class MongoDBStorage(object):
         self._obj_store = {}
         self._storages_base_cls = {}
 
-    def create_store(self, name, store, register_attr=True):
+    def create_store(self, store, register_attr=True):
         """
         Create a special variable type `obj.name` that can hold storable objects
 
@@ -281,8 +282,7 @@ class MongoDBStorage(object):
              attribute with name `name`
 
         """
-        self.register_store(name, store, register_attr=register_attr)
-        store.name = name
+        self.register_store(store, register_attr=register_attr)
         self.stores.save(store)
 
     def finalize_stores(self):
@@ -307,7 +307,7 @@ class MongoDBStorage(object):
 
         self.simplifier.update_class_list()
 
-    def register_store(self, name, store, register_attr=True):
+    def register_store(self, store, register_attr=True):
         """
         Add a object store to the file
 
@@ -325,13 +325,14 @@ class MongoDBStorage(object):
             if set to false the store will not be accesible as an attribute.
             `True` is the default.
         """
-        store.register(self, name)
+        name = store.name
+        store.register(self)
 
         if register_attr:
             if hasattr(self, name):
                 raise ValueError('Attribute name %s is already in use!' % name)
 
-            setattr(self, store.prefix, store)
+            setattr(self, store.name, store)
 
         self._stores[name] = store
 
@@ -406,7 +407,7 @@ class MongoDBStorage(object):
         list of str
             list of stores that can be accessed using `storage.[store]`
         """
-        return [store.prefix for store in self._stores.values()]
+        return [store.name for store in self._stores.values()]
 
     def list_storable_objects(self):
         """

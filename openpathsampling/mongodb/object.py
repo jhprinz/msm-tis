@@ -2,7 +2,7 @@ import logging
 from uuid import UUID
 from weakref import WeakValueDictionary
 
-from openpathsampling.mongodb.base import StorableNamedObject, StorableObject
+from openpathsampling.mongodb.base import StorableObject
 from openpathsampling.mongodb.cache import MaxCache, Cache, NoCache, \
     WeakLRUCache
 from openpathsampling.mongodb.proxy import LoaderProxy
@@ -54,7 +54,7 @@ class HashedList(dict):
         return self._list
 
 
-class ObjectStore(StorableNamedObject):
+class ObjectStore(StorableObject):
     """
     Base Class for storing complex objects in a netCDF4 file. It holds a
     reference to the store file.`
@@ -85,26 +85,27 @@ class ObjectStore(StorableNamedObject):
 
     class DictDelegator(object):
         def __init__(self, store, dct):
-            self.prefix = store.prefix + '_'
+            self.name = store.name + '_'
             self.dct = dct
 
         def __getitem__(self, item):
-            return self.dct[self.prefix + item]
+            return self.dct[self.name + item]
 
         def __contains__(self, item):
-            return (self.prefix + item) in self.dct
+            return (self.name + item) in self.dct
 
-    def prefix_delegate(self, dct):
+    def name_delegate(self, dct):
         return ObjectStore.DictDelegator(self, dct)
 
     default_cache = 10000
 
-    def __init__(self, content_class):
+    def __init__(self, name, content_class):
         """
 
         Parameters
         ----------
-        content_class
+        name : str
+        content_class : class
 
         Notes
         -----
@@ -140,18 +141,19 @@ class ObjectStore(StorableNamedObject):
         super(ObjectStore, self).__init__()
         self._storage = None
         self.content_class = content_class
-        self.prefix = None
         self.cache = NoCache()
         self._free = set()
         self._cached_all = False
         self._created = False
+
+        self.name = name
 
         self.attribute_list = {}
         self.cv = {}
 
         # This will not be stored since its information is contained in the
         # dimension names
-        self._dimension_prefix_store = None
+        self._dimension_name_store = None
 
         self.variables = dict()
         self.units = dict()
@@ -174,32 +176,27 @@ class ObjectStore(StorableNamedObject):
     def to_dict(self):
         return {
             'content_class': self.content_class,
+            'name': self.name
         }
 
     def register_fallback(self, store):
         self.fallback_store = store
 
-    def register(self, storage, prefix):
+    def register(self, storage):
         """
-        Associate the object store to a specific storage with a given prefix
+        Associate the object store to a specific storage with a given name
 
         Parameters
         ----------
         storage : :class:`openpathsampling.netcdfplus.NetCDFPlus`
             the storage to be associated with
-        prefix : str
-            the name under which
 
         """
         self._storage = storage
-        self.prefix = prefix
-
-        # self.variables = self.prefix_delegate(self.storage.variables)
-        # self.units = self.prefix_delegate(self.storage.units)
-        # self.vars = self.prefix_delegate(self.storage.vars)
+        self.name = self.name
 
         self.index = self.create_uuid_index()
-        self._document = storage.db[prefix]
+        self._document = storage.db[self.name]
 
     def create_uuid_index(self):
         return HashedList()
@@ -209,7 +206,8 @@ class ObjectStore(StorableNamedObject):
 
     def load_indices(self):
         self.index.clear()
-        self.index.extend(self._document.distinct('_id'))
+        self.index.extend(
+            [int(UUID(x)) for x in self._document.distinct('_id')])
 
     @property
     def storage(self):
@@ -234,7 +232,7 @@ class ObjectStore(StorableNamedObject):
 
     def __repr__(self):
         return 'store.%s[%s] : %s' % (
-            self.prefix,
+            self.name,
             self.content_class.__name__ if self.content_class is not None else
             'None/ANY',
             str(len(self)) + ' object(s)'

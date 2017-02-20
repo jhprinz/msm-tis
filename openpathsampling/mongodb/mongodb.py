@@ -273,8 +273,6 @@ class MongoDBStorage(object):
 
         Parameters
         ----------
-        name : str
-            the name of the store inside this storage
         store : :class:`openpathsampling.netcdf.ObjectStore`
             the store to be added to this storage
         register_attr : bool
@@ -316,9 +314,6 @@ class MongoDBStorage(object):
 
         Parameters
         ----------
-        name : str
-            the name of the store under which the objects are accessible
-            like `store.{name}`
         store : :class:`openpathsampling.storages.ObjectStore`
             instance of the object store
         register_attr : bool

@@ -14,6 +14,8 @@ from openpathsampling.analysis.tools import (
     sampleset_sample_generator
 )
 
+from openpathsampling.netcdfplus import FunctionPseudoAttribute
+
 logger = logging.getLogger(__name__)
 
 
@@ -164,18 +166,35 @@ class TISTransition(Transition):
         self._rate = None
 
         self.hist_args = {} # shortcut to ensemble_histogram_info[].hist_args
-        self.ensemble_histogram_info = {
-            'max_lambda' : Histogrammer(
-                f=max_lambdas,
-                f_args={'orderparameter' : self.orderparameter},
-                hist_args={}
-            ),
-            'pathlength' : Histogrammer(
-                f=pathlength,
-                f_args={},
-                hist_args={}
-            )
-        }
+
+        if False:
+            self.ensemble_histogram_info = {
+                'max_lambda' : Histogrammer(
+                    f=max_lambdas,
+                    f_args={'orderparameter' : self.orderparameter},
+                    hist_args={}
+                ),
+                'pathlength' : Histogrammer(
+                    f=pathlength,
+                    f_args={},
+                    hist_args={}
+                )
+            }
+        else:
+            f1 = FunctionPseudoAttribute('max_cv', paths.Trajectory, lambda t, cv: max(cv(t)), cv=self.orderparameter)
+            f2 = FunctionPseudoAttribute('max_cv', paths.Trajectory, lambda t: len(t))
+            self.ensemble_histogram_info = {
+                'max_lambda' : Histogrammer(
+                    f=lambda s: f1(s.trajectory),
+                    f_args={},
+                    hist_args={}
+                ),
+                'pathlength' : Histogrammer(
+                    f=lambda s: f2(s.trajectory),
+                    f_args={},
+                    hist_args={}
+                )
+            }
 
         self.minus_ensemble = paths.MinusInterfaceEnsemble(
             state_vol=stateA,

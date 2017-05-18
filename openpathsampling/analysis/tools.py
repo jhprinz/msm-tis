@@ -8,6 +8,8 @@ def pathlength(sample):
 def max_lambdas(sample, orderparameter):
     return max(orderparameter(sample.trajectory))
 
+
+
 def sampleset_sample_generator(steps):
     for step in steps:
         sset = step.active # take the sampleset after the move

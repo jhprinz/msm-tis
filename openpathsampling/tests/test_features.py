@@ -1,21 +1,25 @@
 from __future__ import absolute_import
 from builtins import hex
 from builtins import object
-from nose.tools import (assert_equal, assert_not_equal,
-                        assert_almost_equal, raises, assert_in)
+from nose.tools import raises
 
-from nose.plugins.skip import Skip, SkipTest
-from .test_helpers import (true_func, assert_equal_array_array,
-                           make_1d_traj, assert_items_equal)
+from nose.plugins.skip import SkipTest
+from .test_helpers import u
 
 import logging
 
 import numpy as np
 import numpy.testing as npt
-import openmmtools as omt
+try:
+    import openmmtools as omt
+except ImportError:
+    omt = None
+
+import openpathsampling as paths
+
+
 import openpathsampling.engines.toy as toy_engine
 import openpathsampling.engines.openmm as omm_engine
-import simtk.unit as u
 
 quiet_loggers = ["initialization", "ensemble", "netcdfplus.objects",
                  "netcdfplus.netcdfplus", "pathmover", "netcdfplus.base"]
@@ -37,7 +41,8 @@ class TestFeatures(object):
         assert(toy_copy.velocities[1] == 1.0)
 
     def test_copy_with_replacement_openmm(self):
-
+        if not paths.integration_tools.HAS_OPENMM or omt is None:
+            raise SkipTest
         # test an openmm snapshot
         sys = omt.testsystems.AlanineDipeptideVacuum()
         omm_snap = omm_engine.snapshot_from_testsystem(sys)
@@ -64,4 +69,4 @@ class TestFeatures(object):
         init_vel = np.array([3.0, 4.0])
         toy_snap = toy_engine.Snapshot(
             coordinates=init_coord, velocities=init_vel)
-        toy_copy = toy_snap.copy_with_replacement(dummy=0)
+        toy_snap.copy_with_replacement(dummy=0)

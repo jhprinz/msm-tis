@@ -336,6 +336,11 @@ class Function(ChainDict):
         self.requires_lists = requires_lists
         self.scalarize_numpy_singletons = scalarize_numpy_singletons
 
+    def _use_scalarize_numpy_singletons(self, result):
+        return (self.scalarize_numpy_singletons
+                and isinstance(result, np.ndarray)
+                and result.shape[-1] == 1)
+
     def _get(self, item):
         if self._eval is None:
             return None
@@ -346,7 +351,7 @@ class Function(ChainDict):
         else:
             result = self._eval(item)
 
-        if self.scalarize_numpy_singletons and result.shape[-1] == 1:
+        if self._use_scalarize_numpy_singletons(result):
             return result.reshape(result.shape[:-1])
 
         return result
@@ -358,12 +363,12 @@ class Function(ChainDict):
         if self.requires_lists:
             results = self._eval(items)
 
-            if self.scalarize_numpy_singletons and results.shape[-1] == 1:
+            if self._use_scalarize_numpy_singletons(results):
                 results = results.reshape(results.shape[:-1])
 
         else:
             results = [self._eval(obj) for obj in items]
-            if self.scalarize_numpy_singletons and results[0].shape[-1] == 1:
+            if self._use_scalarize_numpy_singletons(results):
                 results = map(lambda x: x.reshape(x.shape[:-1]), results)
 
         return results

@@ -11,4 +11,6 @@ from openpathsampling.engines.openmm.tools import (
 from . import features
 from .snapshot import Snapshot, MDSnapshot
 
+from .cvs import LAMMPSComputeCV
+
 from openpathsampling.engines import NoEngine, SnapshotDescriptor
